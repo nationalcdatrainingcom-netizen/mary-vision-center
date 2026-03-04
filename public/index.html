@@ -663,7 +663,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
               <!-- Current icon preview -->
               <div style="text-align:center;">
                 <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;">Current Icon</div>
-                <img id="current-icon-preview" src="/icon-192.png" style="width:80px;height:80px;border-radius:18px;border:2px solid var(--border);object-fit:cover;" onerror="this.style.opacity=0.3">
+                <img id="current-icon-preview" src="/icon-192.png" style="width:80px;height:80px;border-radius:18px;border:2px solid var(--border);object-fit:cover;" onerror="this.style.opacity=0.3" onload="this.style.opacity=1">
               </div>
 
               <!-- New icon upload -->
@@ -1040,6 +1040,7 @@ function nav(tab){
   closeSidebar();
   if(tab==='money') startMoneyCanvas();
   if(tab==='mycal') renderMycal();
+  if(tab==='settings') { const el=document.getElementById('current-icon-preview'); if(el) el.src='/icon-192.png?v='+Date.now(); }
 }
 function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('mob-backdrop').classList.add('open');}
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('mob-backdrop').classList.remove('open');}
