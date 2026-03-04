@@ -938,6 +938,11 @@ fetch('/api/me',{credentials:'include'}).then(async r=>{
 
 // ═══ LOAD ═════════════════════════════════════════════════════════
 async function loadAll(){
+  console.log('loadAll starting, testing auth...');
+  const debugCheck = await fetch('/api/debug', {credentials:'include'});
+  const debugData = await debugCheck.json();
+  console.log('DEBUG CHECK:', JSON.stringify(debugData));
+
   const [af,as,gl,tr,gr,bl,pt,rm,md,fe,vi,ll] = await Promise.all([
     api('/api/affirmations'),
     api('/api/action-steps'),
@@ -952,6 +957,7 @@ async function loadAll(){
     api('/api/vision'),
     api('/api/love-letter'),
   ]);
+  console.log('loadAll results - af:', af?.length, 'bl:', bl?.length, 'll:', ll);
   affirmations=af||[]; actionSteps=as||[]; goals=gl||[];
   truthReframes=tr||[]; gratitude=gr||[]; blessings=bl||[];
   patterns=pt||[]; reminders=rm||[]; media=md||{youtube:[],books:[],songs:[],other:[]};
