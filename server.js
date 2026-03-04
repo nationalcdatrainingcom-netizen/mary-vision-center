@@ -46,6 +46,17 @@ app.use(session({
     httpOnly: false,
   }
 }));
+// Serve custom icons from persistent disk if they exist, otherwise fall back to public/
+app.get('/icon-192.png', async (req, res) => {
+  const custom = path.join(DATA_DIR, 'icon-192.png');
+  if (await fs.pathExists(custom)) return res.sendFile(custom);
+  res.sendFile(path.join(PUBLIC_DIR, 'icon-192.png'));
+});
+app.get('/icon-512.png', async (req, res) => {
+  const custom = path.join(DATA_DIR, 'icon-512.png');
+  if (await fs.pathExists(custom)) return res.sendFile(custom);
+  res.sendFile(path.join(PUBLIC_DIR, 'icon-512.png'));
+});
 app.use(express.static(PUBLIC_DIR));
 
 function auth(req, res, next) {
@@ -542,9 +553,9 @@ app.post('/api/upload-icon', auth, async (req, res) => {
     const base64 = dataUrl.replace(/^data:image\/[a-z]+;base64,/, '');
     const buf = Buffer.from(base64, 'base64');
 
-    // Save as both icon sizes (browser will use same image — good enough for custom logos)
-    const icon192 = path.join(PUBLIC_DIR, 'icon-192.png');
-    const icon512 = path.join(PUBLIC_DIR, 'icon-512.png');
+    // Save to persistent DATA_DIR so icons survive deploys
+    const icon192 = path.join(DATA_DIR, 'icon-192.png');
+    const icon512 = path.join(DATA_DIR, 'icon-512.png');
     await fs.writeFile(icon192, buf);
     await fs.writeFile(icon512, buf);
 
@@ -563,14 +574,11 @@ app.post('/api/reset-icon', auth, async (req, res) => {
     // We'll just delete the custom icons so the next deploy regenerates them,
     // but for instant effect we copy the originals back from a backup if it exists,
     // otherwise signal the client to reload with a cache-bust
-    const icon192 = path.join(PUBLIC_DIR, 'icon-192.png');
-    const icon512 = path.join(PUBLIC_DIR, 'icon-512.png');
-    const backup192 = path.join(PUBLIC_DIR, 'icon-192-default.png');
-    const backup512 = path.join(PUBLIC_DIR, 'icon-512-default.png');
-    if (await fs.pathExists(backup192)) {
-      await fs.copy(backup192, icon192);
-      await fs.copy(backup512, icon512);
-    }
+    // Delete custom icons from DATA_DIR — server will fall back to public/ defaults
+    const icon192 = path.join(DATA_DIR, 'icon-192.png');
+    const icon512 = path.join(DATA_DIR, 'icon-512.png');
+    if (await fs.pathExists(icon192)) await fs.remove(icon192);
+    if (await fs.pathExists(icon512)) await fs.remove(icon512);
     res.json({ ok: true });
   } catch(e) {
     res.status(500).json({ error: e.message });
