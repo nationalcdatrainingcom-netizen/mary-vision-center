@@ -291,67 +291,174 @@ app.get('/api/ical-events', auth, async (req, res) => {
 });
 
 // ── ICAL PARSER ────────────────────────────────────────────────────
+// ── ICAL PARSER WITH RRULE EXPANSION ─────────────────────────────
 function parseIcal(raw) {
-  const events = [];
-  const lines = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
-    // Unfold continuation lines
-    .replace(/\n[ \t]/g, '').split('\n');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const cutoff = new Date(today); cutoff.setDate(cutoff.getDate() + 60);
 
+  // Unfold continuation lines, split
+  const lines = raw.replace(/\r\n|\r/g, '\n').replace(/\n[ \t]/g, '').split('\n');
+
+  // Parse a DTSTART/DTEND value into { date:'YYYY-MM-DD', time:'HH:MM'|null }
+  function parseDateTime(val) {
+    const clean = val.replace(/^[^:]*:/, '').replace('Z','').trim(); // handle DTSTART;TZID=...:value
+    const d = clean.substring(0,8);
+    if (d.length < 8 || !/^\d{8}$/.test(d)) return null;
+    const date = d.substring(0,4)+'-'+d.substring(4,6)+'-'+d.substring(6,8);
+    let time = null;
+    if (clean.length >= 13 && clean[8]==='T') {
+      time = clean.substring(9,11)+':'+clean.substring(11,13);
+    }
+    return { date, time };
+  }
+
+  // Parse RRULE string into object
+  function parseRrule(val) {
+    const obj = {};
+    val.split(';').forEach(part => {
+      const [k,v] = part.split('=');
+      if (k && v) obj[k.trim()] = v.trim();
+    });
+    return obj;
+  }
+
+  // Expand a recurring event into occurrences within [today, cutoff]
+  function expandRecurring(evt) {
+    const rr = evt._rrule;
+    const freq = (rr.FREQ||'').toUpperCase();
+    if (!['DAILY','WEEKLY','MONTHLY','YEARLY'].includes(freq)) return [];
+
+    const interval = parseInt(rr.INTERVAL||'1',10);
+    const count = rr.COUNT ? parseInt(rr.COUNT,10) : 999;
+    const until = rr.UNTIL ? new Date(
+      rr.UNTIL.substring(0,4)+'-'+rr.UNTIL.substring(4,6)+'-'+rr.UNTIL.substring(6,8)+'T23:59:59'
+    ) : cutoff;
+    const limitDate = until < cutoff ? until : cutoff;
+
+    // BYDAY for weekly — e.g. "MO,WE,FR"
+    const byDay = rr.BYDAY ? rr.BYDAY.split(',').map(d=>d.replace(/[+-\d]/g,'').toUpperCase()) : null;
+    const dayMap = {SU:0,MO:1,TU:2,WE:3,TH:4,FR:5,SA:6};
+
+    const start = new Date(evt.date+'T12:00:00');
+    const results = [];
+    let cur = new Date(start);
+    let n = 0;
+
+    while (cur <= limitDate && n < count && n < 500) {
+      if (cur >= today) {
+        // For weekly with BYDAY, generate all matching days in this week
+        if (freq === 'WEEKLY' && byDay) {
+          const weekStart = new Date(cur);
+          weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Sunday
+          byDay.forEach(d => {
+            const dayNum = dayMap[d];
+            if (dayNum === undefined) return;
+            const candidate = new Date(weekStart);
+            candidate.setDate(weekStart.getDate() + dayNum);
+            if (candidate >= today && candidate <= limitDate && candidate >= start) {
+              const ds = candidate.toISOString().slice(0,10);
+              // Check not in EXDATE
+              if (!evt._exdates || !evt._exdates.has(ds)) {
+                results.push({ ...evt, date: ds, _rrule: undefined, _exdates: undefined });
+              }
+            }
+          });
+        } else {
+          const ds = cur.toISOString().slice(0,10);
+          if (!evt._exdates || !evt._exdates.has(ds)) {
+            results.push({ ...evt, date: ds, _rrule: undefined, _exdates: undefined });
+          }
+        }
+      }
+      n++;
+      // Advance by interval
+      if (freq === 'DAILY') cur.setDate(cur.getDate() + interval);
+      else if (freq === 'WEEKLY') cur.setDate(cur.getDate() + 7 * interval);
+      else if (freq === 'MONTHLY') cur.setMonth(cur.getMonth() + interval);
+      else if (freq === 'YEARLY') cur.setFullYear(cur.getFullYear() + interval);
+    }
+    return results;
+  }
+
+  const rawEvents = [];
   let current = null;
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  const cutoff = new Date(today); cutoff.setDate(cutoff.getDate() + 60); // 60 days ahead
 
   for (const raw_line of lines) {
     const line = raw_line.trim();
-    if (line === 'BEGIN:VEVENT') { current = {}; continue; }
+    if (line === 'BEGIN:VEVENT') { current = { _exdates: new Set() }; continue; }
     if (line === 'END:VEVENT') {
-      if (current && current.date) {
-        const d = new Date(current.date + 'T12:00:00');
-        if (d >= today && d <= cutoff) events.push(current);
-      }
+      if (current) rawEvents.push(current);
       current = null; continue;
     }
     if (!current) continue;
 
     const col = line.indexOf(':');
     if (col === -1) continue;
-    const key = line.substring(0, col).split(';')[0].toUpperCase();
+    // Key may have params: DTSTART;TZID=America/New_York
+    const keyFull = line.substring(0, col);
+    const key = keyFull.split(';')[0].toUpperCase();
     const val = line.substring(col + 1).trim();
 
-    if (key === 'SUMMARY') {
-      current.title = val.replace(/\\,/g, ',').replace(/\\n/g, ' ').replace(/\\;/g, ';').trim();
-    }
+    if (key === 'SUMMARY')
+      current.title = val.replace(/\\,/g,',').replace(/\\n/g,' ').replace(/\\;/g,';').trim();
     if (key === 'DTSTART') {
-      const dateStr = val.replace(/[TZ]/g, '').substring(0, 8);
-      if (dateStr.length === 8) {
-        current.date = dateStr.substring(0,4) + '-' + dateStr.substring(4,6) + '-' + dateStr.substring(6,8);
-        // Extract time if present
-        const timeStr = val.replace('Z','');
-        if (timeStr.length >= 13) {
-          const h = timeStr.substring(9,11), m = timeStr.substring(11,13);
-          current.time = h + ':' + m;
-        }
-      }
+      const dt = parseDateTime(line); // pass full line to handle TZID params
+      if (dt) { current.date = dt.date; if (dt.time) current.time = dt.time; }
     }
     if (key === 'DTEND') {
-      const timeStr = val.replace('Z','');
-      if (timeStr.length >= 13) {
-        current.endTime = timeStr.substring(9,11) + ':' + timeStr.substring(11,13);
-      }
+      const dt = parseDateTime(line);
+      if (dt && dt.time) current.endTime = dt.time;
     }
-    if (key === 'LOCATION') current.location = val.replace(/\\,/g, ',').trim();
-    if (key === 'DESCRIPTION') current.notes = val.replace(/\\n/g, ' ').replace(/\\,/g, ',').trim().substring(0, 200);
-    if (key === 'RRULE') current.recurring = true;
+    if (key === 'RRULE') current._rrule = parseRrule(val);
+    if (key === 'EXDATE') {
+      // excluded dates for recurring events
+      val.split(',').forEach(v => {
+        const clean = v.replace('Z','').replace(/T.*/,'');
+        if (clean.length >= 8)
+          current._exdates.add(clean.substring(0,4)+'-'+clean.substring(4,6)+'-'+clean.substring(6,8));
+      });
+    }
+    if (key === 'LOCATION') current.location = val.replace(/\\,/g,',').trim();
+    if (key === 'DESCRIPTION') current.notes = val.replace(/\\n/g,' ').replace(/\\,/g,',').trim().substring(0,200);
     if (key === 'UID') current.uid = val;
   }
 
-  // Sort by date then time
-  events.sort((a,b) => {
-    const d = a.date.localeCompare(b.date);
-    return d !== 0 ? d : (a.time||'').localeCompare(b.time||'');
-  });
+  // Expand and filter
+  const events = [];
+  const seen = new Set(); // dedup uid+date
 
+  for (const evt of rawEvents) {
+    if (!evt.date) continue;
+
+    if (evt._rrule) {
+      // Recurring — expand into occurrences
+      const occurrences = expandRecurring(evt);
+      occurrences.forEach(occ => {
+        const key = (occ.uid||occ.title||'') + '|' + occ.date;
+        if (!seen.has(key)) { seen.add(key); events.push(occ); }
+      });
+      // Also include the base event if it falls in range
+      const baseD = new Date(evt.date+'T12:00:00');
+      if (baseD >= today && baseD <= cutoff) {
+        const key = (evt.uid||evt.title||'') + '|' + evt.date;
+        if (!seen.has(key)) {
+          seen.add(key);
+          events.push({ ...evt, _rrule:undefined, _exdates:undefined });
+        }
+      }
+    } else {
+      const d = new Date(evt.date+'T12:00:00');
+      if (d >= today && d <= cutoff) {
+        const key = (evt.uid||evt.title||'') + '|' + evt.date;
+        if (!seen.has(key)) {
+          seen.add(key);
+          events.push({ ...evt, _rrule:undefined, _exdates:undefined });
+        }
+      }
+    }
+  }
+
+  events.sort((a,b) => a.date.localeCompare(b.date) || (a.time||'').localeCompare(b.time||''));
   return events;
 }
 
