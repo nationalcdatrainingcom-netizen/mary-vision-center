@@ -1535,14 +1535,18 @@ async function saveIcalFeed(){
   if (!url)  { toast('Enter a URL'); return; }
   const feed = { id: 'ic_' + Date.now(), name, url, color: icalSelectedColor, disabled: false };
   icalFeeds.push(feed);
-  await api('/api/ical-feeds', { method:'POST', body: icalFeeds });
+  // Wait for save to complete before fetching events
+  const saved = await api('/api/ical-feeds', { method:'POST', body: icalFeeds });
+  if (!saved) { toast('Error saving calendar — try again'); icalFeeds.pop(); return; }
   closeModal('m-ical-add');
   document.getElementById('ical-name').value = '';
   document.getElementById('ical-url').value = '';
   document.getElementById('ical-test-result').textContent = '';
   renderIcalFeeds();
-  refreshIcal();
-  toast('Calendar added! Fetching events…');
+  toast('Calendar saved! Fetching events…');
+  // Small delay to ensure server has written the file before we fetch events
+  await new Promise(r => setTimeout(r, 400));
+  await refreshIcal();
 }
 
 async function deleteIcalFeed(id){
