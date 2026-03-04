@@ -893,6 +893,7 @@ function fmtDt(d){if(!d)return'';return new Date(d).toLocaleDateString('en-US',{
 
 async function api(url, opts={}){
   const res = await fetch(url, {
+    credentials: 'include',
     headers:{'Content-Type':'application/json',...(opts.headers||{})},
     ...opts,
     body: opts.body ? (typeof opts.body==='string'?opts.body:JSON.stringify(opts.body)) : undefined
