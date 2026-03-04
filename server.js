@@ -32,10 +32,12 @@ const files = {
   icalFeeds:      path.join(DATA_DIR, 'icalFeeds.json'),
 };
 
+// Trust Render's proxy FIRST so secure cookies work correctly over HTTPS
+app.set('trust proxy', 1);
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'mvc-secret-2024',
+  secret: process.env.SESSION_SECRET || 'mvc-vision-2024-mary-secret-xk9',
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -45,8 +47,6 @@ app.use(session({
     httpOnly: true,
   }
 }));
-// Trust Render's proxy so secure cookies work over HTTPS
-app.set('trust proxy', 1);
 app.use(express.static(PUBLIC_DIR));
 
 function auth(req, res, next) {
