@@ -1239,6 +1239,31 @@ function renderCommand(){
   }
 }
 
+// ═══ HELPER RENDERERS ════════════════════════════════════════════
+function renderExtTaskList(elId, tasks, cat, sourceUrl){
+  const el = document.getElementById(elId); if(!el) return;
+  if(!tasks){ el.innerHTML='<div class="empty">Could not reach organizer</div>'; return; }
+  const items = (tasks||[]).filter(t => t.cat===cat && !t.done);
+  if(!items.length){ el.innerHTML='<div class="empty">All clear ✓</div>'; return; }
+  el.innerHTML = items.map(t=>`
+    <div class="t-row">
+      <div class="t-text">${t.text||t.name||''}</div>
+      <a href="${sourceUrl}" target="_blank" class="t-link">Open →</a>
+    </div>`).join('');
+}
+
+function renderExtProjects(elId, projects, sourceUrl){
+  const el = document.getElementById(elId); if(!el) return;
+  if(!projects){ el.innerHTML='<div class="empty">Could not reach organizer</div>'; return; }
+  const items = (projects||[]).filter(p => p.name && p.name.trim());
+  if(!items.length){ el.innerHTML='<div class="empty">No active projects</div>'; return; }
+  el.innerHTML = items.map(p=>`
+    <div class="t-row">
+      <div class="t-text"><strong>${p.name}</strong> <span style="font-size:11px;color:var(--muted);">${(p.tasks||[]).filter(t=>t.done).length}/${(p.tasks||[]).length} tasks</span></div>
+      <a href="${sourceUrl}" target="_blank" class="t-link">Open →</a>
+    </div>`).join('');
+}
+
 // ═══ TCC / MSA FULL PAGES ════════════════════════════════════════
 function renderTCCFull(){
   renderExtTaskList('tcc-today-full', tccData?.tasks, 'today', TCC_URL);
