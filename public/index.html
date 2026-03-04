@@ -142,7 +142,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
   border-radius:20px;padding:2px 8px;font-size:10px;font-weight:800;letter-spacing:.04em;}
 
 /* ── TASK ROWS ── */
-.t-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.t-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);}
 .t-row:last-child{border-bottom:none;}
 .t-chk{width:17px;height:17px;border-radius:50%;border:2px solid var(--sky);cursor:pointer;
   flex-shrink:0;margin-top:2px;appearance:none;-webkit-appearance:none;background:transparent;transition:all .15s;}
@@ -378,67 +378,37 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
             <div style="font-family:'Dancing Script',cursive;font-size:16px;color:#7e22ce;">✝️ <span id="daily-gratitude-msg"></span></div>
           </div>
           <div class="cc-grid" id="cc-grid">
-            <!-- TCC Cards -->
             <div class="cc-card sky">
-              <div class="cc-card-title">🏫 <span class="badge-tcc">TCC</span> Must Do Today</div>
-              <div id="cc-tcc-today"><div class="empty">Loading…</div></div>
-            </div>
-            <div class="cc-card sky">
-              <div class="cc-card-title">🏫 <span class="badge-tcc">TCC</span> This Week</div>
-              <div id="cc-tcc-week"><div class="empty">Loading…</div></div>
-            </div>
-            <div class="cc-card sky">
-              <div class="cc-card-title">🏫 <span class="badge-tcc">TCC</span> Reach Out</div>
-              <div id="cc-tcc-reach"><div class="empty">Loading…</div></div>
-            </div>
-            <div class="cc-card sky">
-              <div class="cc-card-title">🏫 <span class="badge-tcc">TCC</span> Waiting On</div>
-              <div id="cc-tcc-wait"><div class="empty">Loading…</div></div>
-            </div>
-            <!-- MSA Cards -->
-            <div class="cc-card sun">
-              <div class="cc-card-title">🎓 <span class="badge-msa">MSA</span> Must Do Today</div>
-              <div id="cc-msa-today"><div class="empty">Loading…</div></div>
+              <div class="cc-card-title">⚡ Must Do Today</div>
+              <div id="cc-today"><div class="empty">Loading…</div></div>
             </div>
             <div class="cc-card sun">
-              <div class="cc-card-title">🎓 <span class="badge-msa">MSA</span> Due This Week</div>
-              <div id="cc-msa-week"><div class="empty">Loading…</div></div>
+              <div class="cc-card-title">📋 This Week / On Radar</div>
+              <div id="cc-week"><div class="empty">Loading…</div></div>
+            </div>
+            <div class="cc-card sky">
+              <div class="cc-card-title">📞 Reach Out</div>
+              <div id="cc-reach"><div class="empty">Loading…</div></div>
             </div>
             <div class="cc-card sun">
-              <div class="cc-card-title">🎓 <span class="badge-msa">MSA</span> Reach Out</div>
-              <div id="cc-msa-reach"><div class="empty">Loading…</div></div>
-            </div>
-            <div class="cc-card sun">
-              <div class="cc-card-title">🎓 <span class="badge-msa">MSA</span> Waiting On</div>
-              <div id="cc-msa-wait"><div class="empty">Loading…</div></div>
-            </div>
-            <!-- Calendars -->
-            <div class="cc-card green">
-              <div class="cc-card-title">📅 <span class="badge-tcc">TCC</span> Today's Calendar</div>
-              <div id="cc-tcc-cal"><div class="empty">Loading…</div></div>
+              <div class="cc-card-title">⏳ Waiting On</div>
+              <div id="cc-wait"><div class="empty">Loading…</div></div>
             </div>
             <div class="cc-card green">
-              <div class="cc-card-title">📅 <span class="badge-msa">MSA</span> Today's Calendar</div>
-              <div id="cc-msa-cal"><div class="empty">Loading…</div></div>
+              <div class="cc-card-title">📅 Today's Calendar</div>
+              <div id="cc-cal"><div class="empty">Loading…</div></div>
             </div>
-            <!-- Projects -->
-            <div class="cc-card sky">
-              <div class="cc-card-title">🚧 <span class="badge-tcc">TCC</span> Projects</div>
-              <div id="cc-tcc-proj"><div class="empty">Loading…</div></div>
+            <div class="cc-card purple">
+              <div class="cc-card-title">🚧 Active Projects</div>
+              <div id="cc-proj"><div class="empty">Loading…</div></div>
             </div>
-            <div class="cc-card sun">
-              <div class="cc-card-title">🚧 <span class="badge-msa">MSA</span> Active Projects</div>
-              <div id="cc-msa-proj"><div class="empty">Loading…</div></div>
-            </div>
-            <!-- MSA Messages -->
             <div class="cc-card purple full">
               <div class="cc-card-title">✉️ <span class="badge-msa">MSA</span> Unread Messages</div>
               <div id="cc-msa-msgs"><div class="empty">Loading…</div></div>
             </div>
-            <!-- Coming Up -->
             <div class="cc-card green full">
-              <div class="cc-card-title">📆 <span class="badge-msa">MSA</span> Coming Up (30 days)</div>
-              <div id="cc-msa-coming"><div class="empty">Loading…</div></div>
+              <div class="cc-card-title">📆 Coming Up</div>
+              <div id="cc-coming"><div class="empty">Loading…</div></div>
             </div>
           </div>
         </div>
@@ -873,30 +843,26 @@ async function refreshExternal(){
   const btn=document.getElementById('refresh-btn');
   if(btn){btn.textContent='⏳ Refreshing…';btn.disabled=true;}
   try {
-    const [tr,mr] = await Promise.all([
-      api('/api/proxy',{method:'POST',body:{url:`${TCC_URL}/api/tasks`}}),
+    // TCC uses dedicated MVC endpoints; MSA uses its existing API endpoints
+    const [tTasks, tProj, tCal, mTasks, mProj, mCal, mMsgs] = await Promise.all([
+      api('/api/proxy',{method:'POST',body:{url:`${TCC_URL}/api/mvc/tasks`}}),
+      api('/api/proxy',{method:'POST',body:{url:`${TCC_URL}/api/mvc/projects`}}),
+      api('/api/proxy',{method:'POST',body:{url:`${TCC_URL}/api/mvc/calendar`}}),
       api('/api/proxy',{method:'POST',body:{url:`${MSA_URL}/api/tasks`}}),
-    ]);
-    // Additional MSA data
-    const [mProj, mCal, mMsgs] = await Promise.all([
       api('/api/proxy',{method:'POST',body:{url:`${MSA_URL}/api/projects`}}),
       api('/api/proxy',{method:'POST',body:{url:`${MSA_URL}/api/calendar`}}),
       api('/api/proxy',{method:'POST',body:{url:`${MSA_URL}/api/messages`}}),
     ]);
-    const [tProj, tCal] = await Promise.all([
-      api('/api/proxy',{method:'POST',body:{url:`${TCC_URL}/api/projects`}}),
-      api('/api/proxy',{method:'POST',body:{url:`${TCC_URL}/api/calendar`}}),
-    ]);
     tccData = {
-      tasks: tr?.ok ? tr.data : null,
-      projects: tProj?.ok ? tProj.data : null,
-      calendar: tCal?.ok ? tCal.data : null,
+      tasks:    tTasks?.ok  ? tTasks.data  : null,
+      projects: tProj?.ok   ? tProj.data   : null,
+      calendar: tCal?.ok    ? tCal.data    : null,
     };
     msaData = {
-      tasks: mr?.ok ? mr.data : null,
-      projects: mProj?.ok ? mProj.data : null,
-      calendar: mCal?.ok ? mCal.data : null,
-      messages: mMsgs?.ok ? mMsgs.data : null,
+      tasks:    mTasks?.ok  ? mTasks.data  : null,
+      projects: mProj?.ok   ? mProj.data   : null,
+      calendar: mCal?.ok    ? mCal.data    : null,
+      messages: mMsgs?.ok   ? mMsgs.data   : null,
     };
     lastRefresh = Date.now();
   } catch(e) { console.error('External fetch error', e); }
@@ -977,44 +943,99 @@ async function saveFeatured(){
 }
 
 // ═══ COMMAND CENTER RENDER ════════════════════════════════════════
-function renderExtTaskList(elId, tasks, cat, sourceUrl){
-  const el=document.getElementById(elId); if(!el) return;
-  if(!tasks){el.innerHTML=`<div class="empty">Could not reach organizer</div>`;return;}
-  const filtered=tasks.filter(t=>t.cat===cat&&!t.done);
-  if(!filtered.length){el.innerHTML=`<div class="empty">All clear ✓</div>`;return;}
-  el.innerHTML=filtered.slice(0,5).map(t=>`
-    <div class="t-row">
-      <div class="t-text">${t.text||t.name||''}</div>
-      <a href="${sourceUrl}" target="_blank" class="t-link">Open →</a>
-    </div>`).join('');
-  if(filtered.length>5) el.innerHTML+=`<div style="font-size:11px;color:var(--muted);padding:4px 0;">+${filtered.length-5} more</div>`;
+// ── UNIFIED ITEM RENDERER ─────────────────────────────────────────
+// Each item gets a source badge (TCC or MSA) + a link back to that organizer
+
+function sourceBadge(src){
+  return src==='tcc'
+    ? `<span class="badge-tcc">TCC</span>`
+    : `<span class="badge-msa">MSA</span>`;
+}
+function sourceLink(src){
+  return src==='tcc' ? TCC_URL : MSA_URL;
 }
 
-function renderExtCalendar(elId, calendar, sourceUrl){
+// Merge two arrays, tagging each item with its source
+function mergeItems(tccArr, msaArr, mapper){
+  const out=[];
+  (tccArr||[]).forEach(i=>out.push({...mapper(i), src:'tcc'}));
+  (msaArr||[]).forEach(i=>out.push({...mapper(i), src:'msa'}));
+  return out;
+}
+
+function renderMergedTasks(elId, cat){
   const el=document.getElementById(elId); if(!el) return;
-  if(!calendar){el.innerHTML=`<div class="empty">Could not reach organizer</div>`;return;}
+  const tccItems = tccData?.tasks ? tccData.tasks.filter(t=>t.cat===cat&&!t.done) : null;
+  const msaItems = msaData?.tasks ? msaData.tasks.filter(t=>t.cat===cat&&!t.done) : null;
+  if(tccItems===null && msaItems===null){
+    el.innerHTML=`<div class="empty">Connecting to organizers…</div>`; return;
+  }
+  const items = mergeItems(tccItems||[], msaItems||[], t=>({text:t.text||t.name||''}));
+  if(!items.length){el.innerHTML=`<div class="empty">All clear ✓</div>`;return;}
+  el.innerHTML=items.slice(0,8).map(t=>`
+    <div class="t-row">
+      ${sourceBadge(t.src)}
+      <div class="t-text">${t.text}</div>
+      <a href="${sourceLink(t.src)}" target="_blank" class="t-link">Open →</a>
+    </div>`).join('');
+  if(items.length>8) el.innerHTML+=`<div style="font-size:11px;color:var(--muted);padding:4px 0 0;">+${items.length-8} more</div>`;
+}
+
+function renderMergedCalendar(elId){
+  const el=document.getElementById(elId); if(!el) return;
   const today=new Date().toISOString().slice(0,10);
-  const todayEvts=calendar.filter(e=>e.date===today);
-  if(!todayEvts.length){el.innerHTML=`<div class="empty">No events today</div>`;return;}
-  el.innerHTML=todayEvts.map(e=>`
+  const tccEvts = tccData?.calendar ? tccData.calendar.filter(e=>e.date===today) : null;
+  const msaEvts = msaData?.calendar ? msaData.calendar.filter(e=>e.date===today) : null;
+  if(tccEvts===null && msaEvts===null){
+    el.innerHTML=`<div class="empty">Connecting…</div>`; return;
+  }
+  const items = mergeItems(tccEvts||[], msaEvts||[], e=>({time:e.startTime||e.time||'',title:e.title||''}));
+  items.sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  if(!items.length){el.innerHTML=`<div class="empty">No events today</div>`;return;}
+  el.innerHTML=items.map(e=>`
     <div class="t-row">
-      <div class="t-text"><strong>${e.startTime||'All day'}</strong> — ${e.title}</div>
-      <a href="${sourceUrl}" target="_blank" class="t-link">Open →</a>
+      ${sourceBadge(e.src)}
+      <div class="t-text">${e.time?`<strong>${e.time}</strong> — `:''}${e.title}</div>
+      <a href="${sourceLink(e.src)}" target="_blank" class="t-link">Open →</a>
     </div>`).join('');
 }
 
-function renderExtProjects(elId, projects, sourceUrl){
+function renderMergedProjects(elId){
   const el=document.getElementById(elId); if(!el) return;
-  if(!projects){el.innerHTML=`<div class="empty">Could not reach organizer</div>`;return;}
-  const active=projects.filter(p=>p.status==='active'||(!p.status));
-  if(!active.length){el.innerHTML=`<div class="empty">No active projects</div>`;return;}
-  el.innerHTML=active.slice(0,4).map(p=>{
-    const done=(p.tasks||[]).filter(t=>t.done).length, total=(p.tasks||[]).length;
-    return`<div class="t-row">
-      <div class="t-text"><strong>${p.name}</strong> <span style="font-size:11px;color:var(--muted);">${done}/${total} tasks</span></div>
-      <a href="${sourceUrl}" target="_blank" class="t-link">Open →</a>
-    </div>`;
-  }).join('');
+  const tccProj = tccData?.projects ? tccData.projects.filter(p=>p.name&&p.name.trim()) : null;
+  const msaProj = msaData?.projects ? msaData.projects.filter(p=>p.status==='active'||(p.name&&p.name.trim())) : null;
+  if(tccProj===null && msaProj===null){
+    el.innerHTML=`<div class="empty">Connecting…</div>`; return;
+  }
+  const items = mergeItems(tccProj||[], msaProj||[], p=>({
+    name:p.name, done:(p.tasks||[]).filter(t=>t.done).length, total:(p.tasks||[]).length
+  }));
+  if(!items.length){el.innerHTML=`<div class="empty">No active projects</div>`;return;}
+  el.innerHTML=items.slice(0,8).map(p=>`
+    <div class="t-row">
+      ${sourceBadge(p.src)}
+      <div class="t-text"><strong>${p.name}</strong> <span style="font-size:11px;color:var(--muted);">${p.done}/${p.total} tasks</span></div>
+      <a href="${sourceLink(p.src)}" target="_blank" class="t-link">Open →</a>
+    </div>`).join('');
+}
+
+function renderMergedComingUp(elId){
+  const el=document.getElementById(elId); if(!el) return;
+  const today=new Date().toISOString().slice(0,10);
+  const tccUpcoming = tccData?.calendar ? tccData.calendar.filter(e=>e.date>today) : null;
+  const msaUpcoming = msaData?.calendar ? msaData.calendar.filter(e=>e.date>today) : null;
+  if(tccUpcoming===null && msaUpcoming===null){
+    el.innerHTML=`<div class="empty">Connecting…</div>`; return;
+  }
+  const items = mergeItems(tccUpcoming||[], msaUpcoming||[], e=>({date:e.date,title:e.title||''}));
+  items.sort((a,b)=>a.date.localeCompare(b.date));
+  if(!items.length){el.innerHTML=`<div class="empty">Nothing coming up</div>`;return;}
+  el.innerHTML=items.slice(0,8).map(e=>`
+    <div class="t-row">
+      ${sourceBadge(e.src)}
+      <div class="t-text"><strong>${fmt(e.date)}</strong> — ${e.title}</div>
+      <a href="${sourceLink(e.src)}" target="_blank" class="t-link">Open →</a>
+    </div>`).join('');
 }
 
 function renderExtMessages(elId, messages, sourceUrl){
@@ -1024,41 +1045,21 @@ function renderExtMessages(elId, messages, sourceUrl){
   if(!unread.length){el.innerHTML=`<div class="empty">No unread messages ✓</div>`;return;}
   el.innerHTML=unread.slice(0,5).map(m=>`
     <div class="t-row">
+      <span class="badge-msa">MSA</span>
       <div class="t-text"><strong>${m.from||''}:</strong> ${(m.body||'').slice(0,80)}${(m.body||'').length>80?'…':''}</div>
       <a href="${sourceUrl}" target="_blank" class="t-link">Open →</a>
     </div>`).join('');
 }
 
-function renderExtComingUp(elId, calendar, sourceUrl){
-  const el=document.getElementById(elId); if(!el) return;
-  if(!calendar){el.innerHTML=`<div class="empty">Could not reach organizer</div>`;return;}
-  const today=new Date().toISOString().slice(0,10);
-  const soon=calendar.filter(e=>e.date>today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,6);
-  if(!soon.length){el.innerHTML=`<div class="empty">Nothing upcoming</div>`;return;}
-  el.innerHTML=soon.map(e=>`
-    <div class="t-row">
-      <div class="t-text"><strong>${fmt(e.date)}</strong> — ${e.title}</div>
-      <a href="${sourceUrl}" target="_blank" class="t-link">Open →</a>
-    </div>`).join('');
-}
-
 function renderCommand(){
-  // TCC
-  renderExtTaskList('cc-tcc-today', tccData?.tasks, 'today', TCC_URL);
-  renderExtTaskList('cc-tcc-week', tccData?.tasks, 'week', TCC_URL);
-  renderExtTaskList('cc-tcc-reach', tccData?.tasks, 'reach', TCC_URL);
-  renderExtTaskList('cc-tcc-wait', tccData?.tasks, 'waiting', TCC_URL);
-  renderExtCalendar('cc-tcc-cal', tccData?.calendar, TCC_URL);
-  renderExtProjects('cc-tcc-proj', tccData?.projects, TCC_URL);
-  // MSA
-  renderExtTaskList('cc-msa-today', msaData?.tasks, 'today', MSA_URL);
-  renderExtTaskList('cc-msa-week', msaData?.tasks, 'week', MSA_URL);
-  renderExtTaskList('cc-msa-reach', msaData?.tasks, 'reach', MSA_URL);
-  renderExtTaskList('cc-msa-wait', msaData?.tasks, 'waiting', MSA_URL);
-  renderExtCalendar('cc-msa-cal', msaData?.calendar, MSA_URL);
-  renderExtProjects('cc-msa-proj', msaData?.projects, MSA_URL);
+  renderMergedTasks('cc-today', 'today');
+  renderMergedTasks('cc-week', 'week');
+  renderMergedTasks('cc-reach', 'reach');
+  renderMergedTasks('cc-wait', 'waiting');
+  renderMergedCalendar('cc-cal');
+  renderMergedProjects('cc-proj');
   renderExtMessages('cc-msa-msgs', msaData?.messages, MSA_URL);
-  renderExtComingUp('cc-msa-coming', msaData?.calendar, MSA_URL);
+  renderMergedComingUp('cc-coming');
   // Prosperity step
   const active=actionSteps.filter(s=>!s.done).slice(0,1)[0];
   const el=document.getElementById('cc-action-step');
