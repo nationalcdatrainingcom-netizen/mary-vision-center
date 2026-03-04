@@ -121,38 +121,63 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/logout', (req, res) => { req.session.destroy(); res.json({ ok: true }); });
 
 // ── GENERIC CRUD HELPERS ──────────────────────────────────────────
+async function readFile(fileKey) {
+  try {
+    return await fs.readJson(files[fileKey]);
+  } catch(e) {
+    console.error(`readFile error [${fileKey}]:`, e.message);
+    return null;
+  }
+}
+
 function arrayRoutes(route, fileKey) {
-  app.get(`/api/${route}`, auth, async (req, res) => res.json(await fs.readJson(files[fileKey])));
+  app.get(`/api/${route}`, auth, async (req, res) => {
+    const data = await readFile(fileKey);
+    if (data === null) return res.status(500).json({ error: `Could not read ${fileKey}` });
+    res.json(data);
+  });
   app.post(`/api/${route}`, auth, async (req, res) => {
-    const data = await fs.readJson(files[fileKey]);
-    const item = { id: Date.now().toString(), ...req.body, createdAt: new Date().toISOString() };
-    data.push(item);
-    await fs.writeJson(files[fileKey], data, { spaces: 2 });
-    res.json(item);
+    try {
+      const data = await readFile(fileKey) || [];
+      const item = { id: Date.now().toString(), ...req.body, createdAt: new Date().toISOString() };
+      data.push(item);
+      await fs.writeJson(files[fileKey], data, { spaces: 2 });
+      res.json(item);
+    } catch(e) { res.status(500).json({ error: e.message }); }
   });
   app.put(`/api/${route}/:id`, auth, async (req, res) => {
-    const data = await fs.readJson(files[fileKey]);
-    const idx = data.findIndex(d => d.id === req.params.id);
-    if (idx === -1) return res.status(404).json({ error: 'Not found' });
-    data[idx] = { ...data[idx], ...req.body, updatedAt: new Date().toISOString() };
-    await fs.writeJson(files[fileKey], data, { spaces: 2 });
-    res.json(data[idx]);
+    try {
+      const data = await readFile(fileKey) || [];
+      const idx = data.findIndex(d => d.id === req.params.id);
+      if (idx === -1) return res.status(404).json({ error: 'Not found' });
+      data[idx] = { ...data[idx], ...req.body, updatedAt: new Date().toISOString() };
+      await fs.writeJson(files[fileKey], data, { spaces: 2 });
+      res.json(data[idx]);
+    } catch(e) { res.status(500).json({ error: e.message }); }
   });
   app.delete(`/api/${route}/:id`, auth, async (req, res) => {
-    let data = await fs.readJson(files[fileKey]);
-    data = data.filter(d => d.id !== req.params.id);
-    await fs.writeJson(files[fileKey], data, { spaces: 2 });
-    res.json({ success: true });
+    try {
+      let data = await readFile(fileKey) || [];
+      data = data.filter(d => d.id !== req.params.id);
+      await fs.writeJson(files[fileKey], data, { spaces: 2 });
+      res.json({ success: true });
+    } catch(e) { res.status(500).json({ error: e.message }); }
   });
 }
 
 function singleRoutes(route, fileKey) {
-  app.get(`/api/${route}`, auth, async (req, res) => res.json(await fs.readJson(files[fileKey])));
+  app.get(`/api/${route}`, auth, async (req, res) => {
+    const data = await readFile(fileKey);
+    if (data === null) return res.status(500).json({ error: `Could not read ${fileKey}` });
+    res.json(data);
+  });
   app.put(`/api/${route}`, auth, async (req, res) => {
-    const current = await fs.readJson(files[fileKey]);
-    const updated = { ...current, ...req.body, updatedAt: new Date().toISOString() };
-    await fs.writeJson(files[fileKey], updated, { spaces: 2 });
-    res.json(updated);
+    try {
+      const current = await readFile(fileKey) || {};
+      const updated = { ...current, ...req.body, updatedAt: new Date().toISOString() };
+      await fs.writeJson(files[fileKey], updated, { spaces: 2 });
+      res.json(updated);
+    } catch(e) { res.status(500).json({ error: e.message }); }
   });
 }
 
@@ -547,6 +572,22 @@ app.post('/api/reset-icon', auth, async (req, res) => {
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
+});
+
+// ── DEBUG (authenticated) — remove after fixing ──────────────────
+app.get('/api/debug', auth, async (req, res) => {
+  const result = { session: req.session.userId, DATA_DIR, files: {} };
+  for (const [key, filePath] of Object.entries(files)) {
+    if (key === 'users') continue;
+    try {
+      const data = await fs.readJson(filePath);
+      const len = Array.isArray(data) ? data.length : (typeof data === 'object' ? Object.keys(data).length : 1);
+      result.files[key] = { ok: true, items: len, path: filePath };
+    } catch(e) {
+      result.files[key] = { ok: false, error: e.message, path: filePath };
+    }
+  }
+  res.json(result);
 });
 
 // ── BACKUP ────────────────────────────────────────────────────────
