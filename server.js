@@ -38,8 +38,15 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'mvc-secret-2024',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
+  cookie: {
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    httpOnly: true,
+  }
 }));
+// Trust Render's proxy so secure cookies work over HTTPS
+app.set('trust proxy', 1);
 app.use(express.static(PUBLIC_DIR));
 
 function auth(req, res, next) {
@@ -496,6 +503,52 @@ function parseIcal(raw) {
   return events;
 }
 
+// ── ICON UPLOAD ───────────────────────────────────────────────────
+app.post('/api/upload-icon', auth, async (req, res) => {
+  const { dataUrl } = req.body;
+  if (!dataUrl || !dataUrl.startsWith('data:image/')) {
+    return res.status(400).json({ error: 'Invalid image data' });
+  }
+  try {
+    // Strip the data URL prefix and decode base64
+    const base64 = dataUrl.replace(/^data:image\/[a-z]+;base64,/, '');
+    const buf = Buffer.from(base64, 'base64');
+
+    // Save as both icon sizes (browser will use same image — good enough for custom logos)
+    const icon192 = path.join(PUBLIC_DIR, 'icon-192.png');
+    const icon512 = path.join(PUBLIC_DIR, 'icon-512.png');
+    await fs.writeFile(icon192, buf);
+    await fs.writeFile(icon512, buf);
+
+    console.log('Icon uploaded:', buf.length, 'bytes');
+    res.json({ ok: true, message: 'Icon saved! Remove the app from your home screen, then re-add it in Safari.' });
+  } catch(e) {
+    console.error('Icon upload error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Reset icon back to generated default
+app.post('/api/reset-icon', auth, async (req, res) => {
+  try {
+    // Regenerate default icon using canvas (Node.js built-in approach — write a simple SVG-based PNG)
+    // We'll just delete the custom icons so the next deploy regenerates them,
+    // but for instant effect we copy the originals back from a backup if it exists,
+    // otherwise signal the client to reload with a cache-bust
+    const icon192 = path.join(PUBLIC_DIR, 'icon-192.png');
+    const icon512 = path.join(PUBLIC_DIR, 'icon-512.png');
+    const backup192 = path.join(PUBLIC_DIR, 'icon-192-default.png');
+    const backup512 = path.join(PUBLIC_DIR, 'icon-512-default.png');
+    if (await fs.pathExists(backup192)) {
+      await fs.copy(backup192, icon192);
+      await fs.copy(backup512, icon512);
+    }
+    res.json({ ok: true });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── BACKUP ────────────────────────────────────────────────────────
 app.get('/api/backup', auth, async (req, res) => {
   const backup = { _exportedAt: new Date().toISOString() };
@@ -519,6 +572,17 @@ initData().then(async () => {
       await fs.writeJson(files.icalFeeds, clean, { spaces: 2 });
     }
   } catch(e) { console.error('iCal cleanup error:', e.message); }
+
+  // Back up default icons so reset always works
+  try {
+    const icon192 = path.join(PUBLIC_DIR, 'icon-192.png');
+    const backup192 = path.join(PUBLIC_DIR, 'icon-192-default.png');
+    if (await fs.pathExists(icon192) && !await fs.pathExists(backup192)) {
+      await fs.copy(icon192, backup192);
+      await fs.copy(path.join(PUBLIC_DIR, 'icon-512.png'), path.join(PUBLIC_DIR, 'icon-512-default.png'));
+      console.log('Default icons backed up');
+    }
+  } catch(e) { console.error('Icon backup error:', e.message); }
 
   app.listen(PORT, () => console.log(`Mary's Vision Center on port ${PORT}`));
 });
