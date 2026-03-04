@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#38bdf8">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vision Center">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Mary's Vision Center</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Nunito:wght@300;400;600;700;800&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
@@ -353,6 +357,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
       <div class="sb-item" data-tab="reminders" onclick="nav('reminders')"><span class="sb-icon">🔔</span>Reminders</div>
       <div class="sb-item" data-tab="affirmations" onclick="nav('affirmations')"><span class="sb-icon">✨</span>Affirmations</div>
       <div class="sb-item" data-tab="mycal" onclick="nav('mycal')"><span class="sb-icon">🗓</span>My Calendars</div>
+      <div class="sb-item" data-tab="settings" onclick="nav('settings')" style="margin-top:auto;border-top:1px solid var(--border);padding-top:10px;"><span class="sb-icon">⚙️</span>Settings</div>
       <div class="sb-footer">
         <div class="sb-user">✝️ Blessed & Favored · Mary Wardlaw</div>
         <button onclick="downloadBackup()" style="background:rgba(56,189,248,.2);color:rgba(255,255,255,.7);border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Nunito',sans-serif;width:100%;">💾 Download Backup</button>
@@ -635,6 +640,71 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
             </div>
             <div id="ical-events-list"><div class="empty">Click Refresh Events to load your calendars</div></div>
           </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="panel" id="panel-settings">
+        <div class="page-header">
+          <div class="page-title">⚙️ Settings</div>
+        </div>
+        <div class="content">
+
+          <!-- APP ICON -->
+          <div class="card" style="margin-bottom:20px;">
+            <div class="card-title">📱 App Icon (iPhone / Desktop)</div>
+            <div style="background:var(--sky-bg);border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:var(--sky2);font-weight:600;line-height:1.6;">
+              Upload your own logo to use as the app icon. After saving, you'll need to
+              <strong>remove the app from your home screen</strong> and
+              <strong>re-add it in Safari</strong> to see the new icon.
+            </div>
+
+            <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;">
+              <!-- Current icon preview -->
+              <div style="text-align:center;">
+                <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;">Current Icon</div>
+                <img id="current-icon-preview" src="/icon-192.png" style="width:80px;height:80px;border-radius:18px;border:2px solid var(--border);object-fit:cover;" onerror="this.style.opacity=0.3">
+              </div>
+
+              <!-- New icon upload -->
+              <div style="flex:1;min-width:200px;">
+                <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;">Upload New Icon</div>
+                <label id="icon-upload-label" style="display:flex;align-items:center;justify-content:center;gap:10px;border:2px dashed var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:border .2s;font-size:14px;color:var(--muted);" onmouseover="this.style.borderColor='#38bdf8'" onmouseout="this.style.borderColor='var(--border)'">
+                  <span style="font-size:24px;">🖼</span>
+                  <span id="icon-upload-label-text">Click to choose PNG or JPG</span>
+                  <input type="file" id="icon-file-input" accept="image/png,image/jpeg,image/jpg,image/webp" style="display:none" onchange="previewIcon(event)">
+                </label>
+                <div id="icon-new-preview" style="display:none;margin-top:12px;text-align:center;">
+                  <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;">Preview</div>
+                  <img id="icon-preview-img" style="width:80px;height:80px;border-radius:18px;border:2px solid #38bdf8;object-fit:cover;">
+                  <div style="margin-top:4px;font-size:11px;color:var(--muted);">How it'll look on iPhone</div>
+                </div>
+              </div>
+            </div>
+
+            <div id="icon-upload-result" style="margin-top:12px;font-size:13px;min-height:20px;"></div>
+            <div style="margin-top:14px;display:flex;gap:10px;">
+              <button class="ph-btn primary" onclick="uploadIcon()" id="icon-upload-btn" disabled>💾 Save as App Icon</button>
+              <button class="btn-ghost" onclick="resetIcon()">↩ Reset to Default</button>
+            </div>
+          </div>
+
+          <!-- INSTRUCTIONS -->
+          <div class="card">
+            <div class="card-title">📋 How to Add to iPhone Home Screen</div>
+            <ol style="font-size:14px;color:var(--text);line-height:2;padding-left:20px;margin:0;">
+              <li>Upload your icon above and tap <strong>Save as App Icon</strong></li>
+              <li>If the app is already on your home screen, <strong>press and hold it → Remove App</strong></li>
+              <li>Open <strong>Safari</strong> on your iPhone and go to<br><code style="background:var(--sky-bg);padding:2px 6px;border-radius:4px;font-size:12px;">https://mary-vision-center.onrender.com</code></li>
+              <li>Tap the <strong>Share button</strong> <span style="font-size:16px;">⬆️</span> at the bottom of Safari</li>
+              <li>Scroll down and tap <strong>Add to Home Screen</strong></li>
+              <li>Tap <strong>Add</strong> — your logo appears as the icon!</li>
+            </ol>
+            <div style="margin-top:14px;background:var(--sun-bg);border-radius:10px;padding:12px;font-size:13px;color:#92400e;">
+              💡 <strong>Tip:</strong> For the best result, use a square image (same width and height). PNG with a transparent or solid background works best.
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -954,7 +1024,7 @@ function renderAll(){
 }
 
 // ═══ NAV ══════════════════════════════════════════════════════════
-const TAB_TITLES={command:'Command Center',mycal:'My Personal Calendars',action:'Prosperity Action Steps',vision:'Vision & Abundance',money:'Money Flow',gratitude:'Gratitude',love:'Love Letter to Myself',truth:'Truth Reframes',blessings:'Blessings & Prayer',patterns:'Patterns & Tolerating',tcc:'TCC Overview',msa:'MSA Overview',media:'Inspiration Media',reminders:'Reminders',affirmations:'Affirmations'};
+const TAB_TITLES={command:'Command Center',mycal:'My Personal Calendars',settings:'Settings',action:'Prosperity Action Steps',vision:'Vision & Abundance',money:'Money Flow',gratitude:'Gratitude',love:'Love Letter to Myself',truth:'Truth Reframes',blessings:'Blessings & Prayer',patterns:'Patterns & Tolerating',tcc:'TCC Overview',msa:'MSA Overview',media:'Inspiration Media',reminders:'Reminders',affirmations:'Affirmations'};
 function nav(tab){
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.toggle('active',i.dataset.tab===tab));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -1658,6 +1728,73 @@ function renderMycal(){
   renderIcalEventsList();
 }
 
+// ═══ SETTINGS — ICON UPLOAD ══════════════════════════════════════
+let iconDataUrl = null;
+
+function previewIcon(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const label = document.getElementById('icon-upload-label-text');
+  label.textContent = file.name;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    iconDataUrl = e.target.result;
+    // Show preview
+    const preview = document.getElementById('icon-new-preview');
+    const img = document.getElementById('icon-preview-img');
+    img.src = iconDataUrl;
+    preview.style.display = 'block';
+    // Enable save button
+    document.getElementById('icon-upload-btn').disabled = false;
+    document.getElementById('icon-upload-result').textContent = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function uploadIcon() {
+  if (!iconDataUrl) return;
+  const btn = document.getElementById('icon-upload-btn');
+  const result = document.getElementById('icon-upload-result');
+  btn.textContent = '⏳ Saving…';
+  btn.disabled = true;
+  result.textContent = '';
+
+  try {
+    const r = await api('/api/upload-icon', { method: 'POST', body: { dataUrl: iconDataUrl } });
+    if (r && r.ok) {
+      result.innerHTML = '<span style="color:#059669;font-weight:700;">✅ Icon saved!</span> Now remove the app from your home screen and re-add it in Safari to see your new icon.';
+      // Refresh the current icon preview
+      const ts = '?v=' + Date.now();
+      document.getElementById('current-icon-preview').src = '/icon-192.png' + ts;
+      // Reset uploader
+      iconDataUrl = null;
+      document.getElementById('icon-file-input').value = '';
+      document.getElementById('icon-new-preview').style.display = 'none';
+      document.getElementById('icon-upload-label-text').textContent = 'Click to choose PNG or JPG';
+    } else {
+      result.innerHTML = '<span style="color:#e11d48;">❌ Upload failed. Try again.</span>';
+      btn.disabled = false;
+    }
+  } catch(e) {
+    result.innerHTML = '<span style="color:#e11d48;">❌ Error: ' + e.message + '</span>';
+    btn.disabled = false;
+  }
+  btn.textContent = '💾 Save as App Icon';
+}
+
+async function resetIcon() {
+  if (!confirm('Reset to the default blue icon?')) return;
+  const result = document.getElementById('icon-upload-result');
+  result.textContent = '⏳ Resetting…';
+  // Send a blank signal — server will regenerate default
+  const r = await api('/api/reset-icon', { method: 'POST' });
+  if (r && r.ok) {
+    result.innerHTML = '<span style="color:#059669;font-weight:700;">✅ Reset to default!</span> Re-add to home screen to see the change.';
+    document.getElementById('current-icon-preview').src = '/icon-192.png?v=' + Date.now();
+  }
+}
+
 // ═══ MONEY CANVAS ════════════════════════════════════════════════
 let moneyAnimFrame = null;
 let moneyParticles = [];
@@ -1954,5 +2091,12 @@ async function downloadBackup(){
   toast('💾 Backup downloaded!');
 }
 </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(() => console.log('SW registered'))
+        .catch(e => console.log('SW error', e));
+    }
+  </script>
 </body>
 </html>
