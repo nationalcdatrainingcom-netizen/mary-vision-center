@@ -352,6 +352,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
       <div class="sb-item" data-tab="media" onclick="nav('media')"><span class="sb-icon">🎵</span>Inspiration Media</div>
       <div class="sb-item" data-tab="reminders" onclick="nav('reminders')"><span class="sb-icon">🔔</span>Reminders</div>
       <div class="sb-item" data-tab="affirmations" onclick="nav('affirmations')"><span class="sb-icon">✨</span>Affirmations</div>
+      <div class="sb-item" data-tab="mycal" onclick="nav('mycal')"><span class="sb-icon">🗓</span>My Calendars</div>
       <div class="sb-footer">
         <div class="sb-user">✝️ Blessed & Favored · Mary Wardlaw</div>
         <button onclick="downloadBackup()" style="background:rgba(56,189,248,.2);color:rgba(255,255,255,.7);border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Nunito',sans-serif;width:100%;">💾 Download Backup</button>
@@ -616,11 +617,58 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);m
         </div>
       </div>
 
+      <!-- MY CALENDARS -->
+      <div class="panel" id="panel-mycal">
+        <div class="page-header">
+          <div class="page-title">🗓 My Personal Calendars</div>
+          <button class="ph-btn primary" onclick="openModal('m-ical-add')">+ Add Calendar</button>
+        </div>
+        <div class="content">
+          <div style="background:linear-gradient(135deg,var(--sky-bg),var(--sun-bg));border-radius:14px;padding:14px 18px;margin-bottom:20px;">
+            <div style="font-size:13px;font-weight:700;color:var(--sky2);">📅 Connect your iCal calendars. Events appear on the Command Center and here. In iCloud: right-click a calendar → Get Info → copy the webcal:// link.</div>
+          </div>
+          <div id="ical-feeds-list" style="margin-bottom:20px;"></div>
+          <div class="card">
+            <div class="card-title">📅 Upcoming Events (Next 60 Days)</div>
+            <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+              <button class="ph-btn primary" onclick="refreshIcal()" id="ical-refresh-btn">🔄 Refresh Events</button>
+            </div>
+            <div id="ical-events-list"><div class="empty">Click Refresh Events to load your calendars</div></div>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /main -->
   </div><!-- /app-body -->
 </div><!-- /app -->
 
 <!-- MODALS -->
+<div class="modal-bg" id="m-ical-add">
+  <div class="modal">
+    <div class="modal-title">🗓 Add Personal Calendar</div>
+    <div class="fg"><label>Calendar Name</label><input id="ical-name" placeholder="e.g. Personal, Family, Work…"></div>
+    <div class="fg"><label>iCal URL <span style="font-size:11px;color:var(--muted)">(webcal:// or https://)</span></label><input id="ical-url" placeholder="webcal://p01-caldav.icloud.com/…"></div>
+    <div class="fg"><label>Color</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;" id="ical-color-swatches">
+        <div class="color-swatch selected" data-color="#38bdf8" style="background:#38bdf8"></div>
+        <div class="color-swatch" data-color="#fbbf24" style="background:#fbbf24"></div>
+        <div class="color-swatch" data-color="#34d399" style="background:#34d399"></div>
+        <div class="color-swatch" data-color="#f472b6" style="background:#f472b6"></div>
+        <div class="color-swatch" data-color="#a78bfa" style="background:#a78bfa"></div>
+        <div class="color-swatch" data-color="#fb923c" style="background:#fb923c"></div>
+        <div class="color-swatch" data-color="#e11d48" style="background:#e11d48"></div>
+        <div class="color-swatch" data-color="#0ea5e9" style="background:#0ea5e9"></div>
+      </div>
+    </div>
+    <div id="ical-test-result" style="font-size:13px;margin-top:8px;min-height:20px;"></div>
+    <div class="mbtns">
+      <button class="btn-ghost" onclick="closeModal('m-ical-add')">Cancel</button>
+      <button class="btn-ghost" onclick="testIcalUrl()" id="ical-test-btn">🔍 Test URL</button>
+      <button class="btn-primary" onclick="saveIcalFeed()">Save Calendar</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="m-action">
   <div class="modal">
     <div class="modal-title">🚀 New Prosperity Action Step</div>
@@ -747,6 +795,8 @@ let gratitude = [], blessings = [], patterns = [], reminders = [], media = {};
 let featured = {}, vision = {}, loveLetter = {};
 let tccData = null, msaData = null;
 let lastRefresh = 0;
+let icalFeeds = [];
+let icalEvents = [];   // all events from all personal feeds, cached
 const TCC_URL = 'https://tcc-master-organizer.onrender.com';
 const MSA_URL = 'https://msa-organizer.onrender.com';
 const GRATITUDE_MSGS = [
@@ -835,7 +885,12 @@ async function loadAll(){
   truthReframes=tr||[]; gratitude=gr||[]; blessings=bl||[];
   patterns=pt||[]; reminders=rm||[]; media=md||{youtube:[],books:[],songs:[],other:[]};
   featured=fe||{}; vision=vi||{}; loveLetter=ll||{};
+  // Load ical feeds list (not the events themselves — fetched on demand / refresh)
+  const icalData = await api('/api/ical-feeds');
+  icalFeeds = icalData || [];
   await refreshExternal();
+  // Load ical events in background after main load
+  refreshIcalSilent();
 }
 
 // ═══ EXTERNAL DATA FETCH ══════════════════════════════════════════
@@ -899,7 +954,7 @@ function renderAll(){
 }
 
 // ═══ NAV ══════════════════════════════════════════════════════════
-const TAB_TITLES={command:'Command Center',action:'Prosperity Action Steps',vision:'Vision & Abundance',money:'Money Flow',gratitude:'Gratitude',love:'Love Letter to Myself',truth:'Truth Reframes',blessings:'Blessings & Prayer',patterns:'Patterns & Tolerating',tcc:'TCC Overview',msa:'MSA Overview',media:'Inspiration Media',reminders:'Reminders',affirmations:'Affirmations'};
+const TAB_TITLES={command:'Command Center',mycal:'My Personal Calendars',action:'Prosperity Action Steps',vision:'Vision & Abundance',money:'Money Flow',gratitude:'Gratitude',love:'Love Letter to Myself',truth:'Truth Reframes',blessings:'Blessings & Prayer',patterns:'Patterns & Tolerating',tcc:'TCC Overview',msa:'MSA Overview',media:'Inspiration Media',reminders:'Reminders',affirmations:'Affirmations'};
 function nav(tab){
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.toggle('active',i.dataset.tab===tab));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -907,6 +962,7 @@ function nav(tab){
   document.getElementById('ph-title').textContent=TAB_TITLES[tab]||tab;
   closeSidebar();
   if(tab==='money') startMoneyCanvas();
+  if(tab==='mycal') renderMycal();
 }
 function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('mob-backdrop').classList.add('open');}
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('mob-backdrop').classList.remove('open');}
@@ -981,22 +1037,45 @@ function renderMergedTasks(elId, cat){
   if(items.length>8) el.innerHTML+=`<div style="font-size:11px;color:var(--muted);padding:4px 0 0;">+${items.length-8} more</div>`;
 }
 
+// Deduplicate calendar items by normalized title+time — keeps first (TCC first)
+function dedupeCalendar(items){
+  const seen = new Set();
+  return items.filter(e => {
+    const norm = (e.title||'').toLowerCase().replace(/\s*\([^)]*\)/g,'').trim();
+    const key = norm + '|' + (e.time||'');
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 function renderMergedCalendar(elId){
   const el=document.getElementById(elId); if(!el) return;
   const today=new Date().toISOString().slice(0,10);
   const tccEvts = tccData?.calendar ? tccData.calendar.filter(e=>e.date===today) : null;
   const msaEvts = msaData?.calendar ? msaData.calendar.filter(e=>e.date===today) : null;
-  if(tccEvts===null && msaEvts===null){
+  // Personal iCal events for today
+  const personalEvts = icalEvents.filter(e=>e.date===today&&!e.feedDisabled);
+
+  let items = mergeItems(tccEvts||[], msaEvts||[], e=>({time:e.startTime||e.time||'',title:e.title||''}));
+  // Add personal calendar events with their feed color
+  personalEvts.forEach(e => items.push({
+    time: e.time||'', title: e.title||'', src:'personal',
+    feedColor: e.feedColor||'#38bdf8', feedName: e.feedName||'Personal'
+  }));
+  items.sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  items = dedupeCalendar(items);
+  if(!items.length && tccEvts===null && msaEvts===null){
     el.innerHTML=`<div class="empty">Connecting…</div>`; return;
   }
-  const items = mergeItems(tccEvts||[], msaEvts||[], e=>({time:e.startTime||e.time||'',title:e.title||''}));
-  items.sort((a,b)=>(a.time||'').localeCompare(b.time||''));
   if(!items.length){el.innerHTML=`<div class="empty">No events today</div>`;return;}
   el.innerHTML=items.map(e=>`
     <div class="t-row">
-      ${sourceBadge(e.src)}
-      <div class="t-text">${e.time?`<strong>${e.time}</strong> — `:''}${e.title}</div>
-      <a href="${sourceLink(e.src)}" target="_blank" class="t-link">Open →</a>
+      ${e.src==='personal'
+        ? `<span style="display:inline-flex;align-items:center;gap:4px;background:${e.feedColor}22;color:${e.feedColor};border:1px solid ${e.feedColor}55;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;white-space:nowrap;flex-shrink:0;">${e.feedName}</span>`
+        : sourceBadge(e.src)}
+      <div class="t-text">${e.time?`<strong>${fmtTime(e.time)}</strong> — `:''}${e.title}</div>
+      ${e.src!=='personal'?`<a href="${sourceLink(e.src)}" target="_blank" class="t-link">Open →</a>`:''}
     </div>`).join('');
 }
 
@@ -1024,17 +1103,21 @@ function renderMergedComingUp(elId){
   const today=new Date().toISOString().slice(0,10);
   const tccUpcoming = tccData?.calendar ? tccData.calendar.filter(e=>e.date>today) : null;
   const msaUpcoming = msaData?.calendar ? msaData.calendar.filter(e=>e.date>today) : null;
-  if(tccUpcoming===null && msaUpcoming===null){
-    el.innerHTML=`<div class="empty">Connecting…</div>`; return;
-  }
-  const items = mergeItems(tccUpcoming||[], msaUpcoming||[], e=>({date:e.date,title:e.title||''}));
-  items.sort((a,b)=>a.date.localeCompare(b.date));
+  const personalUpcoming = icalEvents.filter(e=>e.date>today);
+  let items = mergeItems(tccUpcoming||[], msaUpcoming||[], e=>({date:e.date,title:e.title||'',time:e.time||''}));
+  personalUpcoming.forEach(e=>items.push({date:e.date,title:e.title||'',time:e.time||'',src:'personal',feedColor:e.feedColor||'#38bdf8',feedName:e.feedName||'Personal'}));
+  items.sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||''));
+  const _seen=new Set();
+  items=items.filter(e=>{const k=(e.title||'').toLowerCase().replace(/\s*\([^)]*\)/g,'').trim()+'|'+e.date;if(_seen.has(k))return false;_seen.add(k);return true;});
+  if(!items.length&&tccUpcoming===null&&msaUpcoming===null){el.innerHTML=`<div class="empty">Connecting…</div>`;return;}
   if(!items.length){el.innerHTML=`<div class="empty">Nothing coming up</div>`;return;}
-  el.innerHTML=items.slice(0,8).map(e=>`
+  el.innerHTML=items.slice(0,12).map(e=>`
     <div class="t-row">
-      ${sourceBadge(e.src)}
-      <div class="t-text"><strong>${fmt(e.date)}</strong> — ${e.title}</div>
-      <a href="${sourceLink(e.src)}" target="_blank" class="t-link">Open →</a>
+      ${e.src==='personal'
+        ?`<span style="display:inline-flex;align-items:center;background:${e.feedColor}22;color:${e.feedColor};border:1px solid ${e.feedColor}55;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;white-space:nowrap;flex-shrink:0;">${e.feedName}</span>`
+        :sourceBadge(e.src)}
+      <div class="t-text"><strong>${fmt(e.date)}</strong>${e.time?' · '+fmtTime(e.time):''} — ${e.title}</div>
+      ${e.src!=='personal'?`<a href="${sourceLink(e.src)}" target="_blank" class="t-link">Open →</a>`:''}
     </div>`).join('');
 }
 
@@ -1408,6 +1491,167 @@ async function energyResponse(level){
         <em style="color:var(--muted);">✝️ "I can do all things through Christ who strengthens me." — Phil 4:13<br>This moment is not your permanent address. You are rising. 🌅</em>
       </div>`;
   }
+}
+
+// ═══ ICAL FEEDS ══════════════════════════════════════════════════
+let icalSelectedColor = '#38bdf8';
+
+// Color swatch picker
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('color-swatch')) {
+    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+    e.target.classList.add('selected');
+    icalSelectedColor = e.target.dataset.color;
+  }
+});
+
+async function testIcalUrl(){
+  const url = document.getElementById('ical-url').value.trim();
+  const res = document.getElementById('ical-test-result');
+  const btn = document.getElementById('ical-test-btn');
+  if (!url) { res.textContent = '⚠️ Enter a URL first'; res.style.color='#f59e0b'; return; }
+  btn.textContent = '⏳ Testing…'; btn.disabled = true;
+  res.textContent = '';
+  try {
+    const r = await api('/api/ical-fetch', { method:'POST', body:{ url } });
+    if (r && r.ok) {
+      res.textContent = `✅ Found ${r.count} events in the next 60 days!`;
+      res.style.color = '#059669';
+    } else {
+      res.textContent = '❌ Could not read this URL. Check it and try again.';
+      res.style.color = '#e11d48';
+    }
+  } catch(e) {
+    res.textContent = '❌ Error: ' + e.message;
+    res.style.color = '#e11d48';
+  }
+  btn.textContent = '🔍 Test URL'; btn.disabled = false;
+}
+
+async function saveIcalFeed(){
+  const name = document.getElementById('ical-name').value.trim();
+  const url  = document.getElementById('ical-url').value.trim();
+  if (!name) { toast('Enter a calendar name'); return; }
+  if (!url)  { toast('Enter a URL'); return; }
+  const feed = { id: 'ic_' + Date.now(), name, url, color: icalSelectedColor, disabled: false };
+  icalFeeds.push(feed);
+  await api('/api/ical-feeds', { method:'POST', body: icalFeeds });
+  closeModal('m-ical-add');
+  document.getElementById('ical-name').value = '';
+  document.getElementById('ical-url').value = '';
+  document.getElementById('ical-test-result').textContent = '';
+  renderIcalFeeds();
+  refreshIcal();
+  toast('Calendar added! Fetching events…');
+}
+
+async function deleteIcalFeed(id){
+  icalFeeds = icalFeeds.filter(f => f.id !== id);
+  await api('/api/ical-feeds', { method:'POST', body: icalFeeds });
+  renderIcalFeeds();
+  refreshIcal();
+}
+
+async function toggleIcalFeed(id){
+  const feed = icalFeeds.find(f => f.id === id);
+  if (feed) feed.disabled = !feed.disabled;
+  await api('/api/ical-feeds', { method:'POST', body: icalFeeds });
+  renderIcalFeeds();
+  renderCommand(); // update command center immediately
+}
+
+function renderIcalFeeds(){
+  const el = document.getElementById('ical-feeds-list');
+  if (!el) return;
+  if (!icalFeeds.length) {
+    el.innerHTML = '<div class="empty" style="margin-bottom:8px;">No calendars added yet — click + Add Calendar to get started</div>';
+    return;
+  }
+  el.innerHTML = icalFeeds.map(f => `
+    <div class="ical-feed-card" style="opacity:${f.disabled?0.5:1}">
+      <div class="ical-dot" style="background:${f.color||'#38bdf8'}"></div>
+      <div style="flex:1;min-width:0;">
+        <div class="ical-feed-name">${f.name}</div>
+        <div class="ical-feed-url">${f.url}</div>
+      </div>
+      <button class="btn-ghost" style="padding:4px 10px;font-size:12px;" onclick="toggleIcalFeed('${f.id}')">${f.disabled?'Enable':'Disable'}</button>
+      <button class="btn-ghost" style="padding:4px 10px;font-size:12px;color:#e11d48;" onclick="deleteIcalFeed('${f.id}')">✕</button>
+    </div>`).join('');
+}
+
+async function refreshIcal(){
+  const btn = document.getElementById('ical-refresh-btn');
+  if (btn) { btn.textContent = '⏳ Loading…'; btn.disabled = true; }
+  try {
+    const events = await api('/api/ical-events');
+    icalEvents = events || [];
+    renderIcalEventsList();
+    renderCommand(); // update today's calendar & coming up
+  } catch(e) { console.error('iCal refresh error', e); }
+  if (btn) { btn.textContent = '🔄 Refresh Events'; btn.disabled = false; }
+}
+
+async function refreshIcalSilent(){
+  if (!icalFeeds.length) return;
+  try {
+    const events = await api('/api/ical-events');
+    icalEvents = events || [];
+    renderCommand();
+  } catch(e) {}
+}
+
+function renderIcalEventsList(){
+  const el = document.getElementById('ical-events-list');
+  if (!el) return;
+  if (!icalEvents.length) {
+    el.innerHTML = '<div class="empty">No upcoming events found in your calendars</div>';
+    return;
+  }
+  const today = new Date().toISOString().slice(0,10);
+  // Group by date
+  const byDate = {};
+  icalEvents.forEach(e => {
+    if (!byDate[e.date]) byDate[e.date] = [];
+    byDate[e.date].push(e);
+  });
+  el.innerHTML = Object.keys(byDate).sort().map(date => {
+    const evts = byDate[date];
+    const d = new Date(date + 'T12:00');
+    const month = d.toLocaleString('default',{month:'short'}).toUpperCase();
+    const day = d.getDate();
+    const isToday = date === today;
+    return `<div style="display:flex;gap:14px;margin-bottom:14px;align-items:flex-start;">
+      <div class="ical-date-block" style="${isToday?'background:var(--sky2);':''}">
+        <div class="month" style="${isToday?'color:#fff;':''}">${month}</div>
+        <div class="day" style="${isToday?'color:#fff;':''}">${day}</div>
+        ${isToday?'<div style="font-size:9px;font-weight:700;color:#fff;">TODAY</div>':''}
+      </div>
+      <div style="flex:1;">
+        ${evts.map(e => `
+          <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);">
+            <div style="width:8px;height:8px;border-radius:50%;background:${e.feedColor||'#38bdf8'};flex-shrink:0;"></div>
+            <div style="flex:1;">
+              <div style="font-size:14px;font-weight:600;color:var(--text);">${e.title}</div>
+              <div style="font-size:12px;color:var(--muted);">${e.feedName||''}${e.time?' · '+fmtTime(e.time):''}${e.location?' · '+e.location:''}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function fmtTime(t){
+  if (!t) return '';
+  const [h,m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hr = h % 12 || 12;
+  return `${hr}:${String(m).padStart(2,'0')} ${ampm}`;
+}
+
+// Called when navigating to mycal tab
+function renderMycal(){
+  renderIcalFeeds();
+  renderIcalEventsList();
 }
 
 // ═══ MONEY CANVAS ════════════════════════════════════════════════
