@@ -210,106 +210,117 @@ app.post('/api/proxy', auth, async (req, res) => {
 });
 
 // ── ICAL FEEDS ────────────────────────────────────────────────────
-arrayRoutes('ical-feeds', 'icalFeeds');
-
-// Fetch and parse a single iCal URL server-side
-app.post('/api/ical-fetch', auth, async (req, res) => {
-  const { url } = req.body;
-  if (!url) return res.status(400).json({ error: 'No URL provided' });
-
-  const fetchUrl = url.replace('webcal://', 'https://').replace('http://', 'https://');
-
-  function doFetch(u, hops) {
-    if (hops > 5) return res.status(500).json({ error: 'Too many redirects' });
-    const lib = require('https');
-    const urlObj = new URL(u);
-    const opts = { hostname: urlObj.hostname, path: urlObj.pathname + urlObj.search, method: 'GET', timeout: 12000, headers: { 'User-Agent': 'MaryVisionCenter/1.0' } };
-    const req2 = lib.request(opts, (r) => {
-      if (r.statusCode >= 300 && r.statusCode < 400 && r.headers.location) {
-        let next = r.headers.location;
-        if (next.startsWith('/')) next = urlObj.origin + next;
-        return doFetch(next, hops + 1);
-      }
-      if (r.statusCode !== 200) return res.status(500).json({ error: 'Server returned ' + r.statusCode });
-      let body = '';
-      r.on('data', d => body += d);
-      r.on('end', () => {
-        try {
-          const events = parseIcal(body);
-          res.json({ ok: true, count: events.length, events });
-        } catch(e) {
-          res.status(500).json({ error: 'Could not parse iCal: ' + e.message });
-        }
-      });
-    });
-    req2.on('error', e => res.status(500).json({ error: e.message }));
-    req2.on('timeout', () => { req2.destroy(); res.status(500).json({ error: 'Timeout' }); });
-    req2.end();
-  }
-  doFetch(fetchUrl, 0);
+// ical-feeds gets its own routes — frontend sends the full array on save
+app.get('/api/ical-feeds', auth, async (req, res) => {
+  const data = await fs.readJson(files.icalFeeds).catch(() => []);
+  res.json(Array.isArray(data) ? data : []);
+});
+app.post('/api/ical-feeds', auth, async (req, res) => {
+  // Frontend posts the entire feeds array to replace it wholesale
+  const feeds = Array.isArray(req.body) ? req.body : [];
+  await fs.writeJson(files.icalFeeds, feeds, { spaces: 2 });
+  res.json({ ok: true, count: feeds.length });
 });
 
-// Refresh all saved iCal feeds and return merged events
-app.get('/api/ical-events', auth, async (req, res) => {
-  const feeds = await fs.readJson(files.icalFeeds).catch(() => []);
-  console.log('iCal-events: loaded', feeds.length, 'feeds from disk');
-  if (!feeds.length) return res.json([]);
-
-  const allEvents = [];
-  await Promise.all(feeds.map(feed => new Promise(resolve => {
-    if (!feed.url || feed.disabled) {
-      console.log('iCal-events: skipping feed', feed.name, feed.disabled ? '(disabled)' : '(no url)');
-      return resolve();
-    }
-    const fetchUrl = feed.url.replace('webcal://', 'https://').replace('http://', 'https://');
-    console.log('iCal-events: fetching', feed.name, '->', fetchUrl.substring(0, 60) + '...');
+// ── SHARED ICAL FETCH HELPER ─────────────────────────────────────
+// Returns a Promise<{ok, events, error}> — same logic used by both
+// the test endpoint and the bulk events endpoint
+function fetchAndParseIcal(rawUrl) {
+  return new Promise((resolve) => {
+    const fetchUrl = rawUrl
+      .trim()
+      .replace('webcal://', 'https://')
+      .replace('webcal://', 'https://')  // double-replace in case it slipped through
+      .replace(/^http:\/\//, 'https://');
 
     function doFetch(u, hops) {
-      if (hops > 5) { console.error('iCal-events: too many redirects for', feed.name); return resolve(); }
-      let lib;
-      try { lib = require('https'); } catch(e) { return resolve(); }
+      if (hops > 8) return resolve({ ok: false, error: 'Too many redirects', events: [] });
       let urlObj;
-      try { urlObj = new URL(u); } catch(e) { console.error('iCal-events: bad URL', u); return resolve(); }
+      try { urlObj = new URL(u); } catch(e) { return resolve({ ok: false, error: 'Invalid URL: ' + u, events: [] }); }
+
+      const https = require('https');
       const opts = {
         hostname: urlObj.hostname,
         path: urlObj.pathname + urlObj.search,
         method: 'GET',
         timeout: 15000,
-        headers: { 'User-Agent': 'MaryVisionCenter/1.0', 'Accept': 'text/calendar,*/*' }
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; MaryVisionCenter/1.0)',
+          'Accept': 'text/calendar, application/ics, */*',
+        }
       };
-      const req2 = lib.request(opts, (r) => {
-        console.log('iCal-events:', feed.name, 'status', r.statusCode);
+      const req2 = https.request(opts, (r) => {
         if (r.statusCode >= 300 && r.statusCode < 400 && r.headers.location) {
           let next = r.headers.location;
-          try { if (next.startsWith('/')) next = urlObj.origin + next; } catch(e) {}
-          console.log('iCal-events: redirect ->', next.substring(0,60));
+          if (next.startsWith('/')) next = 'https://' + urlObj.hostname + next;
+          console.log('iCal: redirect', r.statusCode, '->', next.substring(0,70));
+          r.resume();
           return doFetch(next, hops + 1);
         }
         if (r.statusCode !== 200) {
-          console.error('iCal-events:', feed.name, 'got status', r.statusCode);
-          r.resume(); // drain so connection closes
-          return resolve();
+          console.error('iCal: HTTP', r.statusCode, 'for', u.substring(0,70));
+          r.resume();
+          return resolve({ ok: false, error: 'HTTP ' + r.statusCode, events: [] });
         }
-        let body = '';
-        r.on('data', d => body += d);
+        const chunks = [];
+        r.on('data', d => chunks.push(d));
         r.on('end', () => {
-          console.log('iCal-events:', feed.name, 'got', body.length, 'bytes,', (body.match(/BEGIN:VEVENT/g)||[]).length, 'raw events');
+          const body = Buffer.concat(chunks).toString('utf8');
+          console.log('iCal: got', body.length, 'bytes,', (body.match(/BEGIN:VEVENT/g)||[]).length, 'raw VEVENTs');
           try {
             const events = parseIcal(body);
-            console.log('iCal-events:', feed.name, 'parsed', events.length, 'events in range');
-            events.forEach(e => allEvents.push({ ...e, feedName: feed.name, feedColor: feed.color || '#38bdf8', feedId: feed.id }));
-          } catch(e) { console.error('iCal parse error for', feed.name, e.message); }
-          resolve();
+            console.log('iCal: parsed', events.length, 'events in 60-day window');
+            resolve({ ok: true, events });
+          } catch(e) {
+            console.error('iCal: parse error:', e.message);
+            resolve({ ok: false, error: e.message, events: [] });
+          }
         });
+        r.on('error', e => resolve({ ok: false, error: e.message, events: [] }));
       });
-      req2.on('error', (e) => { console.error('iCal-events fetch error:', feed.name, e.message); resolve(); });
-      req2.on('timeout', () => { console.error('iCal-events timeout:', feed.name); req2.destroy(); resolve(); });
+      req2.on('error', e => { console.error('iCal request error:', e.message); resolve({ ok: false, error: e.message, events: [] }); });
+      req2.on('timeout', () => { console.error('iCal timeout for', u.substring(0,70)); req2.destroy(); resolve({ ok: false, error: 'Timeout', events: [] }); });
       req2.end();
     }
     doFetch(fetchUrl, 0);
-  })));
+  });
+}
 
-  console.log('iCal-events: returning total', allEvents.length, 'events');
+// Test a single iCal URL (called from the Add Calendar modal)
+app.post('/api/ical-fetch', auth, async (req, res) => {
+  const { url } = req.body;
+  if (!url) return res.status(400).json({ error: 'No URL provided' });
+  const result = await fetchAndParseIcal(url);
+  if (result.ok) res.json({ ok: true, count: result.events.length, events: result.events });
+  else res.status(500).json({ error: result.error });
+});
+
+// Return merged events from all saved iCal feeds
+app.get('/api/ical-events', auth, async (req, res) => {
+  const feeds = await fs.readJson(files.icalFeeds).catch(() => []);
+  console.log('iCal-events: loaded', feeds.length, 'feed(s):', feeds.map(f=>f.name).join(', '));
+  if (!feeds.length) return res.json([]);
+
+  const allEvents = [];
+  await Promise.all(
+    feeds.filter(f => f.url && !f.disabled).map(async (feed) => {
+      console.log('iCal-events: fetching', feed.name, feed.url.substring(0,60));
+      const result = await fetchAndParseIcal(feed.url);
+      if (result.ok) {
+        result.events.forEach(e => allEvents.push({
+          ...e,
+          feedName: feed.name,
+          feedColor: feed.color || '#38bdf8',
+          feedId: feed.id,
+        }));
+      } else {
+        console.error('iCal-events: failed for', feed.name, '-', result.error);
+      }
+    })
+  );
+
+  allEvents.sort((a,b) => a.date.localeCompare(b.date) || (a.time||'').localeCompare(b.time||''));
+  console.log('iCal-events: returning', allEvents.length, 'total events');
   res.json(allEvents);
 });
 
@@ -498,4 +509,16 @@ app.get('/api/backup', auth, async (req, res) => {
 
 app.get('*', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'index.html')));
 
-initData().then(() => app.listen(PORT, () => console.log(`Mary's Vision Center on port ${PORT}`)));
+initData().then(async () => {
+  // Clean up any corrupted icalFeeds entries (objects missing url/name from bad saves)
+  try {
+    const feeds = await fs.readJson(files.icalFeeds).catch(() => []);
+    const clean = feeds.filter(f => f && typeof f.url === 'string' && f.url.length > 0);
+    if (clean.length !== feeds.length) {
+      console.log(`iCal cleanup: removed ${feeds.length - clean.length} corrupted feed entries, kept ${clean.length}`);
+      await fs.writeJson(files.icalFeeds, clean, { spaces: 2 });
+    }
+  } catch(e) { console.error('iCal cleanup error:', e.message); }
+
+  app.listen(PORT, () => console.log(`Mary's Vision Center on port ${PORT}`));
+});
