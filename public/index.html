@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Mary's Vision Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Nunito:wght@300;400;600;700;800&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sky: #38bdf8;
+  --sky2: #0ea5e9;
+  --sky-light: #e0f2fe;
+  --sky-bg: #f0f9ff;
+  --sun: #fbbf24;
+  --sun2: #f59e0b;
+  --sun-light: #fef9c3;
+  --sun-bg: #fffbeb;
+  --white: #ffffff;
+  --cream: #fffdf7;
+  --green: #22c55e;
+  --green-bg: #dcfce7;
+  --green2: #16a34a;
+  --tcc: #0ea5e9;
+  --tcc-bg: #e0f2fe;
+  --msa: #f59e0b;
+  --msa-bg: #fef9c3;
+  --mvc: #a855f7;
+  --mvc-bg: #f3e8ff;
+  --text: #1e293b;
+  --text2: #475569;
+  --muted: #94a3b8;
+  --border: #e2e8f0;
+  --border2: #cbd5e1;
+  --card: #ffffff;
+  --radius: 16px;
+  --shadow: 0 2px 16px rgba(56,189,248,.10);
+  --shadow2: 0 8px 32px rgba(56,189,248,.18);
+  --red: #ef4444;
+  --red-bg: #fee2e2;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+/* ── LOGIN ── */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;
+  background:linear-gradient(135deg,#e0f2fe 0%,#fffbeb 50%,#dcfce7 100%);}
+.login-card{background:white;border-radius:24px;padding:48px 40px;width:360px;
+  box-shadow:0 16px 64px rgba(56,189,248,.2);text-align:center;}
+.login-sun{font-size:56px;margin-bottom:8px;animation:spin-slow 20s linear infinite;}
+@keyframes spin-slow{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.login-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;
+  background:linear-gradient(135deg,var(--sky2),var(--sun2));-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;margin-bottom:4px;}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:28px;}
+.login-input{width:100%;padding:12px 16px;border:2px solid var(--border);border-radius:12px;
+  font-family:'Nunito',sans-serif;font-size:14px;outline:none;transition:border .2s;margin-bottom:12px;}
+.login-input:focus{border-color:var(--sky);}
+.login-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--sky),var(--sky2));
+  color:white;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-size:15px;
+  font-weight:700;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.login-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(14,165,233,.4);}
+.login-verse{font-size:12px;color:var(--muted);margin-top:20px;font-style:italic;line-height:1.6;}
+
+/* ── APP SHELL ── */
+#app{display:none;min-height:100vh;flex-direction:column;}
+
+/* ── AFFIRMATION TICKER ── */
+.ticker-wrap{background:linear-gradient(90deg,var(--sky2),var(--sun2),var(--green2),var(--sky2));
+  padding:10px 0;overflow:hidden;position:relative;}
+.ticker-inner{display:flex;white-space:nowrap;animation:ticker 60s linear infinite;}
+.ticker-inner:hover{animation-play-state:paused;}
+.ticker-item{color:white;font-size:13px;font-weight:700;padding:0 40px;letter-spacing:.03em;}
+.ticker-star{color:rgba(255,255,255,.6);padding:0 12px;}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ── FEATURED AFFIRMATION ── */
+.featured-banner{background:linear-gradient(135deg,var(--sun-bg),var(--sky-bg));
+  border-bottom:3px solid var(--sun);padding:14px 24px;text-align:center;position:relative;cursor:pointer;}
+.featured-text{font-family:'Dancing Script',cursive;font-size:20px;color:var(--text);
+  font-weight:600;line-height:1.4;}
+.featured-edit-hint{font-size:10px;color:var(--muted);position:absolute;right:16px;top:50%;transform:translateY(-50%);}
+
+/* ── HEADER ── */
+.app-header{background:white;border-bottom:2px solid var(--border);padding:0 20px;
+  display:flex;align-items:center;gap:12px;height:58px;position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 12px rgba(56,189,248,.08);}
+.mob-menu-btn{background:none;border:none;font-size:22px;cursor:pointer;padding:4px 8px;color:var(--text2);}
+.header-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--text);flex:1;}
+.header-brand{font-size:10px;font-weight:800;color:var(--sky2);letter-spacing:.08em;text-transform:uppercase;}
+.energy-btn{background:linear-gradient(135deg,var(--sun),var(--sun2));border:none;border-radius:20px;
+  padding:7px 14px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;color:white;cursor:pointer;
+  display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.signout-btn{background:none;border:1px solid var(--border2);border-radius:8px;padding:6px 12px;
+  font-family:'Nunito',sans-serif;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;}
+
+/* ── LAYOUT ── */
+.app-body{display:flex;flex:1;}
+.sidebar{width:240px;background:linear-gradient(180deg,#0f172a,#1e3a5f);min-height:calc(100vh - 58px);
+  flex-shrink:0;padding:16px 0;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;}
+.sb-section{font-size:10px;font-weight:800;color:rgba(255,255,255,.3);letter-spacing:.1em;
+  text-transform:uppercase;padding:16px 18px 6px;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 18px;cursor:pointer;
+  font-size:13px;font-weight:600;color:rgba(255,255,255,.65);transition:all .15s;border-radius:0;}
+.sb-item:hover{background:rgba(56,189,248,.15);color:white;}
+.sb-item.active{background:linear-gradient(90deg,rgba(56,189,248,.25),transparent);
+  color:white;border-left:3px solid var(--sky);}
+.sb-icon{font-size:16px;width:20px;text-align:center;}
+.sb-footer{padding:16px 18px;border-top:1px solid rgba(255,255,255,.1);margin-top:auto;}
+.sb-user{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:8px;font-weight:600;}
+
+/* ── MAIN CONTENT ── */
+.main{flex:1;overflow-y:auto;}
+.page-header{background:white;border-bottom:1px solid var(--border);padding:16px 24px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.page-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--text);}
+.ph-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.ph-btn{background:white;border:1.5px solid var(--border2);border-radius:10px;padding:7px 14px;
+  font-family:'Nunito',sans-serif;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s;}
+.ph-btn:hover{border-color:var(--sky);color:var(--sky2);}
+.ph-btn.primary{background:linear-gradient(135deg,var(--sky),var(--sky2));color:white;border-color:transparent;}
+.ph-btn.primary:hover{box-shadow:0 4px 12px rgba(14,165,233,.35);transform:translateY(-1px);}
+.content{padding:20px 24px;}
+.panel{display:none;}
+.panel.active{display:block;}
+
+/* ── CARDS ── */
+.card{background:var(--card);border-radius:var(--radius);padding:18px;
+  box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:16px;}
+.card-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--text);
+  margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+.grid3{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;}
+
+/* ── SOURCE BADGES ── */
+.badge-tcc{background:var(--tcc-bg);color:var(--tcc);border:1px solid rgba(14,165,233,.3);
+  border-radius:20px;padding:2px 8px;font-size:10px;font-weight:800;letter-spacing:.04em;}
+.badge-msa{background:var(--msa-bg);color:#92400e;border:1px solid rgba(245,158,11,.3);
+  border-radius:20px;padding:2px 8px;font-size:10px;font-weight:800;letter-spacing:.04em;}
+.badge-mvc{background:var(--mvc-bg);color:#7e22ce;border:1px solid rgba(168,85,247,.3);
+  border-radius:20px;padding:2px 8px;font-size:10px;font-weight:800;letter-spacing:.04em;}
+
+/* ── TASK ROWS ── */
+.t-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.t-row:last-child{border-bottom:none;}
+.t-chk{width:17px;height:17px;border-radius:50%;border:2px solid var(--sky);cursor:pointer;
+  flex-shrink:0;margin-top:2px;appearance:none;-webkit-appearance:none;background:transparent;transition:all .15s;}
+.t-chk:checked{background:var(--sky);border-color:var(--sky);
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 10 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 4L3.5 6.5L9 1' stroke='white' stroke-width='1.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:center;background-size:10px;}
+.t-text{font-size:13px;color:var(--text);flex:1;line-height:1.4;}
+.t-text.done{text-decoration:line-through;color:var(--muted);}
+.t-link{font-size:11px;color:var(--sky2);cursor:pointer;text-decoration:none;flex-shrink:0;font-weight:600;}
+.t-link:hover{text-decoration:underline;}
+.empty{font-size:13px;color:var(--muted);text-align:center;padding:16px;font-style:italic;}
+
+/* ── COMMAND CENTER CARDS ── */
+.cc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+.cc-card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);border:1px solid var(--border);}
+.cc-card.sky{border-top:3px solid var(--sky);background:linear-gradient(180deg,var(--sky-bg),white);}
+.cc-card.sun{border-top:3px solid var(--sun);background:linear-gradient(180deg,var(--sun-bg),white);}
+.cc-card.green{border-top:3px solid var(--green);background:linear-gradient(180deg,var(--green-bg),white);}
+.cc-card.purple{border-top:3px solid var(--mvc);background:linear-gradient(180deg,var(--mvc-bg),white);}
+.cc-card.full{grid-column:1/-1;}
+.cc-card-title{font-size:12px;font-weight:800;color:var(--text2);text-transform:uppercase;
+  letter-spacing:.07em;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+
+/* ── ACTION STEPS ── */
+.action-step{background:linear-gradient(135deg,var(--sun-bg),var(--sky-bg));border-radius:14px;
+  padding:16px;border:2px solid var(--sun);margin-bottom:10px;position:relative;}
+.action-step.done-step{opacity:.6;border-color:var(--green);}
+.action-step-text{font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;line-height:1.4;}
+.action-complete-btn{background:linear-gradient(135deg,var(--green),#16a34a);color:white;border:none;
+  border-radius:8px;padding:6px 14px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+
+/* ── TRUTH REFRAME ── */
+.reframe-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.reframe-card{border-radius:12px;padding:14px;}
+.reframe-challenge{background:var(--red-bg);border:1px solid rgba(239,68,68,.2);}
+.reframe-truth{background:var(--green-bg);border:1px solid rgba(34,197,94,.2);}
+.reframe-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+.reframe-challenge .reframe-label{color:var(--red);}
+.reframe-truth .reframe-label{color:var(--green2);}
+.reframe-text{font-size:13px;color:var(--text);line-height:1.5;}
+
+/* ── MONEY FLOW CANVAS ── */
+#money-canvas{display:block;width:100%;border-radius:16px;background:linear-gradient(180deg,#fffbeb,#fef9c3);}
+
+/* ── FORMS ── */
+.fg{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.fg label{font-size:12px;font-weight:700;color:var(--text2);}
+.fg input,.fg textarea,.fg select{padding:10px 14px;border:2px solid var(--border);border-radius:10px;
+  font-family:'Nunito',sans-serif;font-size:13px;color:var(--text);outline:none;transition:border .2s;background:white;}
+.fg input:focus,.fg textarea:focus,.fg select:focus{border-color:var(--sky);}
+.fg textarea{resize:vertical;min-height:80px;}
+.btn-primary{background:linear-gradient(135deg,var(--sky),var(--sky2));color:white;border:none;
+  border-radius:10px;padding:10px 22px;font-family:'Nunito',sans-serif;font-size:14px;
+  font-weight:700;cursor:pointer;transition:all .15s;}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(14,165,233,.35);}
+.btn-sun{background:linear-gradient(135deg,var(--sun),var(--sun2));color:white;border:none;
+  border-radius:10px;padding:10px 22px;font-family:'Nunito',sans-serif;font-size:14px;
+  font-weight:700;cursor:pointer;transition:all .15s;}
+.btn-ghost{background:none;border:1.5px solid var(--border2);border-radius:10px;padding:9px 20px;
+  font-family:'Nunito',sans-serif;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;}
+
+/* ── MODALS ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:1000;
+  align-items:center;justify-content:center;padding:20px;}
+.modal-bg.open{display:flex;}
+.modal{background:white;border-radius:20px;padding:28px;width:100%;max-width:480px;
+  max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.18);}
+.modal-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--text);margin-bottom:20px;}
+.mbtns{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+
+/* ── ENERGY MODAL ── */
+.energy-modal{background:white;border-radius:24px;padding:36px;width:100%;max-width:440px;text-align:center;}
+.energy-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--text);margin-bottom:8px;}
+.energy-sub{font-size:14px;color:var(--muted);margin-bottom:28px;}
+.energy-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.e-btn{border:none;border-radius:16px;padding:14px 20px;font-family:'Nunito',sans-serif;
+  font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.e-btn .e-icon{font-size:28px;}
+.e-btn.low{background:var(--red-bg);color:var(--red);}
+.e-btn.medium{background:var(--sun-bg);color:#92400e;}
+.e-btn.high{background:var(--green-bg);color:var(--green2);}
+.e-btn:hover{transform:scale(1.05);}
+.energy-response{margin-top:24px;padding:20px;border-radius:16px;text-align:left;display:none;}
+.energy-response.low{background:var(--sky-bg);border:1px solid rgba(56,189,248,.3);}
+.energy-response.high{background:var(--green-bg);border:1px solid rgba(34,197,94,.3);}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;background:#1e293b;color:white;padding:12px 20px;
+  border-radius:12px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transform:translateY(10px);
+  transition:all .3s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0);}
+
+/* ── GRATITUDE ── */
+.gratitude-item{background:linear-gradient(135deg,var(--sun-bg),var(--sky-bg));border-radius:12px;
+  padding:14px;margin-bottom:10px;font-size:14px;color:var(--text);line-height:1.5;
+  border-left:4px solid var(--sun);display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+
+/* ── BLESSING CARD ── */
+.blessing-card{background:linear-gradient(135deg,var(--mvc-bg),var(--sky-bg));border-radius:14px;
+  padding:16px;margin-bottom:10px;border:1px solid rgba(168,85,247,.2);}
+.blessing-name{font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;}
+.blessing-prayer{font-size:13px;color:var(--text2);line-height:1.5;font-style:italic;}
+
+/* ── REMINDER ── */
+.reminder-item{display:flex;align-items:center;gap:12px;padding:12px 16px;background:white;
+  border-radius:12px;margin-bottom:8px;border:1px solid var(--border);box-shadow:var(--shadow);}
+.reminder-time{font-size:12px;font-weight:700;color:var(--sky2);white-space:nowrap;}
+.reminder-text{font-size:13px;color:var(--text);flex:1;}
+.reminder-badge{font-size:10px;font-weight:700;background:var(--sky-bg);color:var(--sky2);
+  border-radius:20px;padding:2px 8px;}
+
+/* ── MEDIA ── */
+.media-item{display:flex;align-items:center;gap:12px;padding:12px;background:white;
+  border-radius:12px;margin-bottom:8px;border:1px solid var(--border);cursor:pointer;transition:all .15s;}
+.media-item:hover{border-color:var(--sky);box-shadow:var(--shadow);}
+.media-icon{font-size:24px;flex-shrink:0;}
+.media-title{font-size:13px;font-weight:700;color:var(--text);}
+.media-note{font-size:12px;color:var(--muted);}
+
+/* ── LOVE LETTER ── */
+.love-letter-wrap{background:linear-gradient(135deg,#fff5f7,#fce7f3);border-radius:16px;padding:24px;
+  border:2px solid rgba(236,72,153,.2);}
+#love-letter-editor{min-height:300px;font-family:'Dancing Script',cursive;font-size:18px;
+  color:var(--text);outline:none;line-height:1.8;background:transparent;}
+
+/* ── PATTERNS ── */
+.pattern-card{background:white;border-radius:14px;padding:16px;margin-bottom:12px;
+  border:1px solid var(--border);box-shadow:var(--shadow);}
+.pattern-title{font-weight:700;font-size:14px;color:var(--text);margin-bottom:8px;}
+.pattern-step{display:flex;align-items:center;gap:8px;padding:6px 0;
+  font-size:13px;color:var(--text2);}
+.pattern-step::before{content:'→';color:var(--sky2);font-weight:700;flex-shrink:0;}
+
+/* ── MOBILE ── */
+@media(max-width:768px){
+  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:200;transform:translateX(-100%);
+    transition:transform .3s;width:260px;height:100vh;}
+  .sidebar.open{transform:translateX(0);}
+  .mob-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:199;}
+  .mob-backdrop.open{display:block;}
+  .content{padding:14px 16px;}
+  .reframe-grid{grid-template-columns:1fr;}
+}
+@media(min-width:769px){.mob-menu-btn{display:none;}.mob-backdrop{display:none!important;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-sun">☀️</div>
+    <div class="login-title">Mary's Vision Center</div>
+    <div class="login-sub">Your personal sanctuary of abundance & joy</div>
+    <input class="login-input" type="text" id="l-user" placeholder="Username" value="mary">
+    <input class="login-input" type="password" id="l-pass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Enter My Sanctuary ✨</button>
+    <div class="login-verse">"The Lord is my shepherd; I shall not want." — Psalm 23:1<br>All I need is already on its way to me.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;flex-direction:column;">
+
+  <!-- TICKER -->
+  <div class="ticker-wrap">
+    <div class="ticker-inner" id="ticker-inner">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+  <!-- FEATURED AFFIRMATION -->
+  <div class="featured-banner" onclick="editFeatured()">
+    <div class="featured-text" id="featured-text">Loading...</div>
+    <div class="featured-edit-hint">✏️ tap to edit</div>
+  </div>
+
+  <!-- HEADER -->
+  <div class="app-header">
+    <button class="mob-menu-btn" onclick="openSidebar()">☰</button>
+    <div style="flex:1;">
+      <div class="header-brand">Mary's Vision Center</div>
+      <div class="header-title" id="ph-title">Command Center</div>
+    </div>
+    <div class="ph-actions" id="ph-actions"></div>
+    <button class="energy-btn" onclick="openEnergyCheck()">⚡ Energy Check</button>
+    <button class="signout-btn" onclick="doLogout()">Sign Out</button>
+  </div>
+
+  <div class="app-body">
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+      <div class="sb-section">Abundance</div>
+      <div class="sb-item active" data-tab="command" onclick="nav('command')"><span class="sb-icon">🌟</span>Command Center</div>
+      <div class="sb-item" data-tab="action" onclick="nav('action')"><span class="sb-icon">🚀</span>Prosperity Steps</div>
+      <div class="sb-item" data-tab="vision" onclick="nav('vision')"><span class="sb-icon">👁</span>Vision & Abundance</div>
+      <div class="sb-item" data-tab="money" onclick="nav('money')"><span class="sb-icon">💰</span>Money Flow</div>
+      <div class="sb-section">Mind & Soul</div>
+      <div class="sb-item" data-tab="gratitude" onclick="nav('gratitude')"><span class="sb-icon">🙏</span>Gratitude</div>
+      <div class="sb-item" data-tab="love" onclick="nav('love')"><span class="sb-icon">💌</span>Love Letter</div>
+      <div class="sb-item" data-tab="truth" onclick="nav('truth')"><span class="sb-icon">💫</span>Truth Reframes</div>
+      <div class="sb-item" data-tab="blessings" onclick="nav('blessings')"><span class="sb-icon">✝️</span>Blessings & Prayer</div>
+      <div class="sb-item" data-tab="patterns" onclick="nav('patterns')"><span class="sb-icon">🔄</span>Patterns & Tolerating</div>
+      <div class="sb-section">My World</div>
+      <div class="sb-item" data-tab="tcc" onclick="nav('tcc')"><span class="sb-icon">🏫</span>TCC Overview</div>
+      <div class="sb-item" data-tab="msa" onclick="nav('msa')"><span class="sb-icon">🎓</span>MSA Overview</div>
+      <div class="sb-item" data-tab="media" onclick="nav('media')"><span class="sb-icon">🎵</span>Inspiration Media</div>
+      <div class="sb-item" data-tab="reminders" onclick="nav('reminders')"><span class="sb-icon">🔔</span>Reminders</div>
+      <div class="sb-item" data-tab="affirmations" onclick="nav('affirmations')"><span class="sb-icon">✨</span>Affirmations</div>
+      <div class="sb-footer">
+        <div class="sb-user">✝️ Blessed & Favored · Mary Wardlaw</div>
+        <button onclick="downloadBackup()" style="background:rgba(56,189,248,.2);color:rgba(255,255,255,.7);border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Nunito',sans-serif;width:100%;">💾 Download Backup</button>
+      </div>
+    </div>
+    <div class="mob-backdrop" id="mob-backdrop" onclick="closeSidebar()"></div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+      <!-- COMMAND CENTER -->
+      <div class="panel active" id="panel-command">
+        <div class="page-header">
+          <div class="page-title">🌟 Command Center</div>
+          <div class="ph-actions">
+            <button class="ph-btn" onclick="refreshExternal()" id="refresh-btn">🔄 Refresh</button>
+          </div>
+        </div>
+        <div class="content">
+          <!-- Prosperity Step of the Moment -->
+          <div id="cc-action-step" style="margin-bottom:16px;"></div>
+          <!-- Gratitude Moment -->
+          <div style="background:linear-gradient(135deg,#fce7f3,#e0f2fe);border-radius:14px;padding:14px 18px;margin-bottom:16px;border:1px solid rgba(168,85,247,.15);text-align:center;">
+            <div style="font-family:'Dancing Script',cursive;font-size:16px;color:#7e22ce;">✝️ <span id="daily-gratitude-msg"></span></div>
+          </div>
+          <div class="cc-grid" id="cc-grid">
+            <!-- TCC Cards -->
+            <div class="cc-card sky">
+              <div class="cc-card-title">🏫 <span class="badge-tcc">TCC</span> Must Do Today</div>
+              <div id="cc-tcc-today"><div class="empty">Loading…</div></div>
+            </div>
+            <div class="cc-card sky">
+              <div class="cc-card-title">🏫 <span class="badge-tcc">TCC</span> This Week</div>
+              <div id="cc-tcc-week"><div class="empty">Loading…</div></div>
+            </div>
+            <div class="cc-card sky">
+              <div class="cc-card-title">🏫 <span class="badge-tcc">TCC</span> Reach Out</div>
+              <div id="cc-tcc-reach"><div class="empty">Loading…</div></div>
+            </div>
+            <div class="cc-card sky">
+              <div class="cc-card-title">🏫 <span class="badge-tcc">TCC</span> Waiting On</div>
+              <div id="cc-tcc-wait"><div class="empty">Loading…</div></div>
+            </div>
+            <!-- MSA Cards -->
+            <div class="cc-card sun">
+              <div class="cc-card-title">🎓 <span class="badge-msa">MSA</span> Must Do Today</div>
+              <div id="cc-msa-today"><div class="empty">Loading…</div></div>
+            </div>
+            <div class="cc-card sun">
+              <div class="cc-card-title">🎓 <span class="badge-msa">MSA</span> Due This Week</div>
+              <div id="cc-msa-week"><div class="empty">Loading…</div></div>
+            </div>
+            <div class="cc-card sun">
+              <div class="cc-card-title">🎓 <span class="badge-msa">MSA</span> Reach Out</div>
+              <div id="cc-msa-reach"><div class="empty">Loading…</div></div>
+            </div>
+            <div class="cc-card sun">
+              <div class="cc-card-title">🎓 <span class="badge-msa">MSA</span> Waiting On</div>
+              <div id="cc-msa-wait"><div class="empty">Loading…</div></div>
+            </div>
+            <!-- Calendars -->
+            <div class="cc-card green">
+              <div class="cc-card-title">📅 <span class="badge-tcc">TCC</span> Today's Calendar</div>
+              <div id="cc-tcc-cal"><div class="empty">Loading…</div></div>
+            </div>
+            <div class="cc-card green">
+              <div class="cc-card-title">📅 <span class="badge-msa">MSA</span> Today's Calendar</div>
+              <div id="cc-msa-cal"><div class="empty">Loading…</div></div>
+            </div>
+            <!-- Projects -->
+            <div class="cc-card sky">
+              <div class="cc-card-title">🚧 <span class="badge-tcc">TCC</span> Projects</div>
+              <div id="cc-tcc-proj"><div class="empty">Loading…</div></div>
+            </div>
+            <div class="cc-card sun">
+              <div class="cc-card-title">🚧 <span class="badge-msa">MSA</span> Active Projects</div>
+              <div id="cc-msa-proj"><div class="empty">Loading…</div></div>
+            </div>
+            <!-- MSA Messages -->
+            <div class="cc-card purple full">
+              <div class="cc-card-title">✉️ <span class="badge-msa">MSA</span> Unread Messages</div>
+              <div id="cc-msa-msgs"><div class="empty">Loading…</div></div>
+            </div>
+            <!-- Coming Up -->
+            <div class="cc-card green full">
+              <div class="cc-card-title">📆 <span class="badge-msa">MSA</span> Coming Up (30 days)</div>
+              <div id="cc-msa-coming"><div class="empty">Loading…</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROSPERITY ACTION STEPS -->
+      <div class="panel" id="panel-action">
+        <div class="page-header">
+          <div class="page-title">🚀 Prosperity Action Steps</div>
+          <button class="ph-btn primary" onclick="openModal('m-action')">+ Add Step</button>
+        </div>
+        <div class="content">
+          <div style="background:linear-gradient(135deg,var(--sun-bg),var(--sky-bg));border-radius:16px;padding:16px 20px;margin-bottom:20px;border:1px solid rgba(251,191,36,.3);">
+            <div style="font-size:13px;font-weight:700;color:#92400e;">✨ Focus on just 3 steps at a time. Complete one, celebrate, then add another. Small steps create massive momentum.</div>
+          </div>
+          <div id="action-steps-list"></div>
+          <div id="action-completed" style="margin-top:24px;opacity:.7;"></div>
+        </div>
+      </div>
+
+      <!-- VISION & ABUNDANCE -->
+      <div class="panel" id="panel-vision">
+        <div class="page-header"><div class="page-title">👁 Vision & Abundance</div></div>
+        <div class="content">
+          <div class="grid2">
+            <div class="card">
+              <div class="card-title">🌈 My Vision</div>
+              <textarea id="vision-ideas" rows="6" style="width:100%;border:2px solid var(--border);border-radius:10px;padding:12px;font-family:'Nunito',sans-serif;font-size:14px;color:var(--text);outline:none;resize:vertical;" placeholder="Write your vision freely… where you are going, what you are building, how it feels…" oninput="autoSaveVision()"></textarea>
+            </div>
+            <div class="card">
+              <div class="card-title">💭 Ideas & Inspiration</div>
+              <textarea id="vision-notes" rows="6" style="width:100%;border:2px solid var(--border);border-radius:10px;padding:12px;font-family:'Nunito',sans-serif;font-size:14px;color:var(--text);outline:none;resize:vertical;" placeholder="Ideas flowing in… capture them all here…" oninput="autoSaveVision()"></textarea>
+            </div>
+          </div>
+          <div class="card" style="margin-top:4px;">
+            <div class="card-title">🏆 Personal Goals</div>
+            <div id="goals-list" style="margin-bottom:14px;"></div>
+            <button class="btn-primary" onclick="openModal('m-goal')">+ Add Goal</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MONEY FLOW -->
+      <div class="panel" id="panel-money">
+        <div class="page-header"><div class="page-title">💰 Money Flow</div></div>
+        <div class="content">
+          <div style="text-align:center;margin-bottom:16px;">
+            <div style="font-family:'Dancing Script',cursive;font-size:24px;color:#92400e;">Money flows to me easily, joyfully, and abundantly 💛</div>
+          </div>
+          <canvas id="money-canvas" height="400"></canvas>
+          <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--muted);">Watch your abundance flow in — this is your reality. 🙏</div>
+        </div>
+      </div>
+
+      <!-- GRATITUDE -->
+      <div class="panel" id="panel-gratitude">
+        <div class="page-header">
+          <div class="page-title">🙏 Gratitude</div>
+          <button class="ph-btn primary" onclick="openModal('m-gratitude')">+ Add Gratitude</button>
+        </div>
+        <div class="content">
+          <div style="background:linear-gradient(135deg,var(--sun-bg),#fce7f3);border-radius:16px;padding:16px 20px;margin-bottom:20px;border:1px solid rgba(251,191,36,.3);">
+            <div style="font-family:'Dancing Script',cursive;font-size:18px;color:#92400e;">✝️ Thank You Lord for every blessing, seen and unseen. I am grateful for having everything I need before I even need it.</div>
+          </div>
+          <button class="btn-sun" style="margin-bottom:16px;" onclick="promptReadAloud('gratitude')">🔊 Read Aloud Reminder</button>
+          <div id="gratitude-list"></div>
+        </div>
+      </div>
+
+      <!-- LOVE LETTER -->
+      <div class="panel" id="panel-love">
+        <div class="page-header">
+          <div class="page-title">💌 Love Letter to Myself</div>
+          <button class="ph-btn primary" onclick="saveLoveLetter()">Save Letter</button>
+        </div>
+        <div class="content">
+          <div style="background:linear-gradient(135deg,#fce7f3,var(--sky-bg));border-radius:14px;padding:14px 18px;margin-bottom:16px;text-align:center;">
+            <div style="font-size:13px;font-weight:700;color:#9d174d;">💗 This is your love letter to the most important person in your world — YOU. Read this when you need a reminder of how amazing you are.</div>
+          </div>
+          <div class="love-letter-wrap">
+            <div style="font-family:'Dancing Script',cursive;font-size:14px;color:var(--muted);margin-bottom:8px;">Dear Mary,</div>
+            <div id="love-letter-editor" contenteditable="true" spellcheck="true"></div>
+            <div style="font-family:'Dancing Script',cursive;font-size:14px;color:var(--muted);margin-top:12px;">With all my love, Mary ♥</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRUTH REFRAMES -->
+      <div class="panel" id="panel-truth">
+        <div class="page-header">
+          <div class="page-title">💫 Truth Reframes</div>
+          <button class="ph-btn primary" onclick="openModal('m-truth')">+ Add Reframe</button>
+        </div>
+        <div class="content">
+          <div style="background:linear-gradient(135deg,var(--sky-bg),var(--green-bg));border-radius:14px;padding:14px 18px;margin-bottom:20px;">
+            <div style="font-size:13px;font-weight:700;color:var(--green2);">💫 Every lie or limiting belief has a corresponding truth. Capture it here and speak the truth out loud daily.</div>
+          </div>
+          <div id="truth-reframes-list"></div>
+        </div>
+      </div>
+
+      <!-- BLESSINGS & PRAYER -->
+      <div class="panel" id="panel-blessings">
+        <div class="page-header">
+          <div class="page-title">✝️ Blessings & Prayer</div>
+          <button class="ph-btn primary" onclick="openModal('m-blessing')">+ Add Person</button>
+        </div>
+        <div class="content">
+          <div style="background:linear-gradient(135deg,var(--mvc-bg),var(--sky-bg));border-radius:14px;padding:16px 20px;margin-bottom:20px;border:1px solid rgba(168,85,247,.2);">
+            <div style="font-family:'Dancing Script',cursive;font-size:18px;color:#7e22ce;">"Bless those who curse you, pray for those who mistreat you." — Luke 6:28<br>Releasing others in love sets YOU free. 🕊️</div>
+          </div>
+          <div id="blessings-list"></div>
+        </div>
+      </div>
+
+      <!-- PATTERNS -->
+      <div class="panel" id="panel-patterns">
+        <div class="page-header">
+          <div class="page-title">🔄 Patterns & What I'm Tolerating</div>
+          <button class="ph-btn primary" onclick="openModal('m-pattern')">+ Add Pattern</button>
+        </div>
+        <div class="content">
+          <div style="background:linear-gradient(135deg,var(--sky-bg),var(--sun-bg));border-radius:14px;padding:14px 18px;margin-bottom:20px;">
+            <div style="font-size:13px;font-weight:700;color:var(--sky2);">🔄 Awareness is the first step. Name the pattern, identify what you're tolerating, and set 3 action steps to shift it.</div>
+          </div>
+          <div id="patterns-list"></div>
+        </div>
+      </div>
+
+      <!-- TCC OVERVIEW -->
+      <div class="panel" id="panel-tcc">
+        <div class="page-header">
+          <div class="page-title">🏫 TCC Overview</div>
+          <a href="https://tcc-master-organizer.onrender.com" target="_blank" class="ph-btn primary">Open TCC →</a>
+        </div>
+        <div class="content">
+          <div class="grid2" id="tcc-full-grid">
+            <div class="card"><div class="card-title">⚡ Must Do Today</div><div id="tcc-today-full"></div></div>
+            <div class="card"><div class="card-title">📋 This Week</div><div id="tcc-week-full"></div></div>
+            <div class="card"><div class="card-title">📞 Reach Out</div><div id="tcc-reach-full"></div></div>
+            <div class="card"><div class="card-title">⏳ Waiting On</div><div id="tcc-wait-full"></div></div>
+            <div class="card" style="grid-column:1/-1;"><div class="card-title">🚧 Projects</div><div id="tcc-proj-full"></div></div>
+            <div class="card" style="grid-column:1/-1;"><div class="card-title">📅 Coming Due</div><div id="tcc-coming-full"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MSA OVERVIEW -->
+      <div class="panel" id="panel-msa">
+        <div class="page-header">
+          <div class="page-title">🎓 MSA Overview</div>
+          <a href="https://msa-organizer.onrender.com" target="_blank" class="ph-btn primary">Open MSA →</a>
+        </div>
+        <div class="content">
+          <div class="grid2" id="msa-full-grid">
+            <div class="card"><div class="card-title">⚡ Must Do Today</div><div id="msa-today-full"></div></div>
+            <div class="card"><div class="card-title">📋 Due This Week</div><div id="msa-week-full"></div></div>
+            <div class="card"><div class="card-title">📞 Reach Out</div><div id="msa-reach-full"></div></div>
+            <div class="card"><div class="card-title">⏳ Waiting On</div><div id="msa-wait-full"></div></div>
+            <div class="card" style="grid-column:1/-1;"><div class="card-title">🚧 Active Projects</div><div id="msa-proj-full"></div></div>
+            <div class="card" style="grid-column:1/-1;"><div class="card-title">✉️ Unread Messages</div><div id="msa-msgs-full"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MEDIA -->
+      <div class="panel" id="panel-media">
+        <div class="page-header">
+          <div class="page-title">🎵 Inspiration Media</div>
+          <button class="ph-btn primary" onclick="openModal('m-media')">+ Add Media</button>
+        </div>
+        <div class="content">
+          <div class="grid2">
+            <div class="card"><div class="card-title">▶️ YouTube Videos</div><div id="media-youtube"></div></div>
+            <div class="card"><div class="card-title">📚 Books</div><div id="media-books"></div></div>
+            <div class="card"><div class="card-title">🎵 Songs</div><div id="media-songs"></div></div>
+            <div class="card"><div class="card-title">🌟 Other Inspiration</div><div id="media-other"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REMINDERS -->
+      <div class="panel" id="panel-reminders">
+        <div class="page-header">
+          <div class="page-title">🔔 Reminders</div>
+          <button class="ph-btn primary" onclick="openModal('m-reminder')">+ Add Reminder</button>
+        </div>
+        <div class="content">
+          <div id="reminders-due" style="margin-bottom:16px;"></div>
+          <div id="reminders-list"></div>
+        </div>
+      </div>
+
+      <!-- AFFIRMATIONS MANAGER -->
+      <div class="panel" id="panel-affirmations">
+        <div class="page-header">
+          <div class="page-title">✨ Affirmations</div>
+          <button class="ph-btn primary" onclick="openModal('m-affirmation')">+ Add Affirmation</button>
+        </div>
+        <div class="content">
+          <div style="background:linear-gradient(135deg,var(--sky-bg),var(--sun-bg));border-radius:14px;padding:14px 18px;margin-bottom:16px;">
+            <div style="font-size:13px;font-weight:700;color:var(--sky2);">✨ These scroll across the top of every page. Speak them, believe them, receive them.</div>
+          </div>
+          <div id="affirmations-list"></div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /app-body -->
+</div><!-- /app -->
+
+<!-- MODALS -->
+<div class="modal-bg" id="m-action">
+  <div class="modal">
+    <div class="modal-title">🚀 New Prosperity Action Step</div>
+    <div class="fg"><label>The Step</label><textarea id="as-text" rows="3" placeholder="What specific action will shift your prosperity?"></textarea></div>
+    <div class="fg"><label>Why it matters</label><input id="as-why" placeholder="How does this move me forward?"></div>
+    <div class="mbtns"><button class="btn-ghost" onclick="closeModal('m-action')">Cancel</button><button class="btn-primary" onclick="saveActionStep()">Add Step ✨</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="m-goal">
+  <div class="modal">
+    <div class="modal-title">🏆 Add Goal</div>
+    <div class="fg"><label>Goal</label><input id="goal-text" placeholder="Write your goal as if it's already done…"></div>
+    <div class="fg"><label>Target Date</label><input type="date" id="goal-date"></div>
+    <div class="fg"><label>Why I want this</label><textarea id="goal-why" rows="2"></textarea></div>
+    <div class="mbtns"><button class="btn-ghost" onclick="closeModal('m-goal')">Cancel</button><button class="btn-primary" onclick="saveGoal()">Add Goal</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="m-truth">
+  <div class="modal">
+    <div class="modal-title">💫 Add Truth Reframe</div>
+    <div class="fg"><label>The Lie / Challenge / Limiting Belief</label><textarea id="truth-lie" rows="2" placeholder="Write it honestly…"></textarea></div>
+    <div class="fg"><label>The Truth / Positive Frame</label><textarea id="truth-truth" rows="2" placeholder="What is actually true?"></textarea></div>
+    <div class="mbtns"><button class="btn-ghost" onclick="closeModal('m-truth')">Cancel</button><button class="btn-primary" onclick="saveTruthReframe()">Save Reframe</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="m-gratitude">
+  <div class="modal">
+    <div class="modal-title">🙏 Add Gratitude</div>
+    <div class="fg"><label>I am grateful and thankful for…</label><textarea id="grat-text" rows="3" placeholder="Write freely — no entry is too small or too big…"></textarea></div>
+    <div class="mbtns"><button class="btn-ghost" onclick="closeModal('m-gratitude')">Cancel</button><button class="btn-primary" onclick="saveGratitude()">Add 🙏</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="m-blessing">
+  <div class="modal">
+    <div class="modal-title">✝️ Add Blessing & Prayer</div>
+    <div class="fg"><label>Person's Name</label><input id="bl-name" placeholder="Name…"></div>
+    <div class="fg"><label>Relationship / Context</label><input id="bl-context" placeholder="e.g. owes money, past conflict, I hurt them…"></div>
+    <div class="fg"><label>My Prayer for Them</label><textarea id="bl-prayer" rows="3" placeholder="Write your prayer or blessing…"></textarea></div>
+    <div class="mbtns"><button class="btn-ghost" onclick="closeModal('m-blessing')">Cancel</button><button class="btn-primary" onclick="saveBlessing()">Save Prayer ✝️</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="m-pattern">
+  <div class="modal">
+    <div class="modal-title">🔄 Add Pattern / Toleration</div>
+    <div class="fg"><label>The Pattern or What I'm Tolerating</label><textarea id="pat-text" rows="2" placeholder="Name it clearly…"></textarea></div>
+    <div class="fg"><label>Action Step 1</label><input id="pat-s1" placeholder="First shift…"></div>
+    <div class="fg"><label>Action Step 2</label><input id="pat-s2" placeholder="Second shift…"></div>
+    <div class="fg"><label>Action Step 3</label><input id="pat-s3" placeholder="Third shift…"></div>
+    <div class="mbtns"><button class="btn-ghost" onclick="closeModal('m-pattern')">Cancel</button><button class="btn-primary" onclick="savePattern()">Save Pattern</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="m-reminder">
+  <div class="modal">
+    <div class="modal-title">🔔 Add Reminder</div>
+    <div class="fg"><label>Reminder</label><input id="rem-text" placeholder="What do you want to remember?"></div>
+    <div class="fg"><label>Date & Time</label><input type="datetime-local" id="rem-dt"></div>
+    <div class="fg"><label>Type</label>
+      <select id="rem-type"><option value="once">One-time</option><option value="daily">Daily</option><option value="weekly">Weekly</option></select>
+    </div>
+    <div class="mbtns"><button class="btn-ghost" onclick="closeModal('m-reminder')">Cancel</button><button class="btn-primary" onclick="saveReminder()">Set Reminder</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="m-media">
+  <div class="modal">
+    <div class="modal-title">🎵 Add Inspiration</div>
+    <div class="fg"><label>Type</label>
+      <select id="med-type"><option value="youtube">▶️ YouTube</option><option value="books">📚 Book</option><option value="songs">🎵 Song</option><option value="other">🌟 Other</option></select>
+    </div>
+    <div class="fg"><label>Title / Name</label><input id="med-title" placeholder="Title…"></div>
+    <div class="fg"><label>URL or Link (optional)</label><input id="med-url" placeholder="https://…"></div>
+    <div class="fg"><label>Why it inspires me</label><input id="med-note" placeholder="How does this support my vision?"></div>
+    <div class="mbtns"><button class="btn-ghost" onclick="closeModal('m-media')">Cancel</button><button class="btn-primary" onclick="saveMedia()">Add ✨</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="m-affirmation">
+  <div class="modal">
+    <div class="modal-title">✨ Add Affirmation</div>
+    <div class="fg"><label>Affirmation</label><textarea id="aff-text" rows="3" placeholder="Write in present tense, as if it's already true…"></textarea></div>
+    <div class="mbtns"><button class="btn-ghost" onclick="closeModal('m-affirmation')">Cancel</button><button class="btn-primary" onclick="saveAffirmation()">Add ✨</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="m-featured">
+  <div class="modal">
+    <div class="modal-title">⭐ Set Featured Affirmation</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">This appears at the top of every page. Make it powerful.</div>
+    <div class="fg"><label>Your current affirmation / thought</label><textarea id="feat-text" rows="4" placeholder="I am grateful for…"></textarea></div>
+    <div class="mbtns"><button class="btn-ghost" onclick="closeModal('m-featured')">Cancel</button><button class="btn-primary" onclick="saveFeatured()">Set It ✨</button></div>
+  </div>
+</div>
+
+<!-- ENERGY CHECK MODAL -->
+<div class="modal-bg" id="m-energy">
+  <div class="energy-modal">
+    <div style="font-size:40px;margin-bottom:8px;">⚡</div>
+    <div class="energy-title">Energy Check-In</div>
+    <div class="energy-sub">How is your energy and spirit right now, Mary?</div>
+    <div class="energy-btns">
+      <button class="e-btn low" onclick="energyResponse('low')"><span class="e-icon">😔</span>Low</button>
+      <button class="e-btn medium" onclick="energyResponse('medium')"><span class="e-icon">😊</span>Medium</button>
+      <button class="e-btn high" onclick="energyResponse('high')"><span class="e-icon">🌟</span>High & Vibrant</button>
+    </div>
+    <div id="energy-resp-box" class="energy-response"></div>
+    <button onclick="closeModal('m-energy')" style="margin-top:20px;background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:'Nunito',sans-serif;">Close</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══ STATE ════════════════════════════════════════════════════════
+let user = null;
+let affirmations = [], actionSteps = [], goals = [], truthReframes = [];
+let gratitude = [], blessings = [], patterns = [], reminders = [], media = {};
+let featured = {}, vision = {}, loveLetter = {};
+let tccData = null, msaData = null;
+let lastRefresh = 0;
+const TCC_URL = 'https://tcc-master-organizer.onrender.com';
+const MSA_URL = 'https://msa-organizer.onrender.com';
+const GRATITUDE_MSGS = [
+  'Thank You Lord for the abundance that is already flowing into my life.',
+  'I am grateful for having everything I need before I even need it. ✝️',
+  'Thank You God for divine health, divine wealth, and divine relationships.',
+  'Every good and perfect gift comes from above. I receive with gratitude. 🙏',
+  'Thank You Lord for opening doors no man can shut.',
+  'I am blessed, highly favored, and deeply loved by God. ✝️',
+  'Thank You for the overflow — more than enough, pressed down and running over.',
+];
+
+// ═══ UTILS ════════════════════════════════════════════════════════
+function toast(msg, dur=3000){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), dur);
+}
+function om(id){document.getElementById(id).classList.add('open');}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function fmt(d){if(!d)return'';const dt=new Date(d+'T12:00:00');return dt.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+function fmtDt(d){if(!d)return'';return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});}
+
+async function api(url, opts={}){
+  const res = await fetch(url, {
+    headers:{'Content-Type':'application/json',...(opts.headers||{})},
+    ...opts,
+    body: opts.body ? (typeof opts.body==='string'?opts.body:JSON.stringify(opts.body)) : undefined
+  });
+  if(res.status===401){toast('Session expired — please log in again');return null;}
+  const data = await res.json();
+  if(data&&data.error){toast('⚠️ '+data.error);return null;}
+  return data;
+}
+
+// ═══ AUTH ═════════════════════════════════════════════════════════
+async function doLogin(){
+  const username=document.getElementById('l-user').value.trim();
+  const password=document.getElementById('l-pass').value;
+  const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});
+  if(!r.ok){toast('Invalid username or password');return;}
+  user=await r.json();
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  await loadAll();
+  renderAll();
+  openEnergyCheck();
+  startMoneyCanvas();
+  startRemindersCheck();
+}
+async function doLogout(){
+  await fetch('/api/logout',{method:'POST'});
+  location.reload();
+}
+fetch('/api/me').then(async r=>{
+  if(r.ok){
+    user=await r.json();
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='flex';
+    await loadAll();
+    renderAll();
+    openEnergyCheck();
+    startMoneyCanvas();
+    startRemindersCheck();
+  }
+});
+
+// ═══ LOAD ═════════════════════════════════════════════════════════
+async function loadAll(){
+  const [af,as,gl,tr,gr,bl,pt,rm,md,fe,vi,ll] = await Promise.all([
+    api('/api/affirmations'),
+    api('/api/action-steps'),
+    api('/api/goals'),
+    api('/api/truth-reframes'),
+    api('/api/gratitude'),
+    api('/api/blessings'),
+    api('/api/patterns'),
+    api('/api/reminders'),
+    api('/api/media'),
+    api('/api/featured'),
+    api('/api/vision'),
+    api('/api/love-letter'),
+  ]);
+  affirmations=af||[]; actionSteps=as||[]; goals=gl||[];
+  truthReframes=tr||[]; gratitude=gr||[]; blessings=bl||[];
+  patterns=pt||[]; reminders=rm||[]; media=md||{youtube:[],books:[],songs:[],other:[]};
+  featured=fe||{}; vision=vi||{}; loveLetter=ll||{};
+  await refreshExternal();
+}
+
+// ═══ EXTERNAL DATA FETCH ══════════════════════════════════════════
+async function refreshExternal(){
+  const btn=document.getElementById('refresh-btn');
+  if(btn){btn.textContent='⏳ Refreshing…';btn.disabled=true;}
+  try {
+    const [tr,mr] = await Promise.all([
+      api('/api/proxy',{method:'POST',body:{url:`${TCC_URL}/api/tasks`}}),
+      api('/api/proxy',{method:'POST',body:{url:`${MSA_URL}/api/tasks`}}),
+    ]);
+    // Additional MSA data
+    const [mProj, mCal, mMsgs] = await Promise.all([
+      api('/api/proxy',{method:'POST',body:{url:`${MSA_URL}/api/projects`}}),
+      api('/api/proxy',{method:'POST',body:{url:`${MSA_URL}/api/calendar`}}),
+      api('/api/proxy',{method:'POST',body:{url:`${MSA_URL}/api/messages`}}),
+    ]);
+    const [tProj, tCal] = await Promise.all([
+      api('/api/proxy',{method:'POST',body:{url:`${TCC_URL}/api/projects`}}),
+      api('/api/proxy',{method:'POST',body:{url:`${TCC_URL}/api/calendar`}}),
+    ]);
+    tccData = {
+      tasks: tr?.ok ? tr.data : null,
+      projects: tProj?.ok ? tProj.data : null,
+      calendar: tCal?.ok ? tCal.data : null,
+    };
+    msaData = {
+      tasks: mr?.ok ? mr.data : null,
+      projects: mProj?.ok ? mProj.data : null,
+      calendar: mCal?.ok ? mCal.data : null,
+      messages: mMsgs?.ok ? mMsgs.data : null,
+    };
+    lastRefresh = Date.now();
+  } catch(e) { console.error('External fetch error', e); }
+  if(btn){btn.textContent='🔄 Refresh';btn.disabled=false;}
+  renderCommand();
+  renderTCCFull();
+  renderMSAFull();
+}
+
+// Auto-refresh every 5 minutes
+setInterval(()=>{ if(user && document.visibilityState==='visible') refreshExternal(); }, 5*60*1000);
+
+// ═══ RENDER ALL ════════════════════════════════════════════════════
+function renderAll(){
+  renderTicker();
+  renderFeatured();
+  renderCommand();
+  renderActionSteps();
+  renderVision();
+  renderGoals();
+  renderGratitude();
+  renderLoveLetter();
+  renderTruthReframes();
+  renderBlessings();
+  renderPatterns();
+  renderMedia();
+  renderReminders();
+  renderAffirmations();
+  renderTCCFull();
+  renderMSAFull();
+  // Daily gratitude message
+  const el=document.getElementById('daily-gratitude-msg');
+  if(el) el.textContent=GRATITUDE_MSGS[new Date().getDay()%GRATITUDE_MSGS.length];
+}
+
+// ═══ NAV ══════════════════════════════════════════════════════════
+const TAB_TITLES={command:'Command Center',action:'Prosperity Action Steps',vision:'Vision & Abundance',money:'Money Flow',gratitude:'Gratitude',love:'Love Letter to Myself',truth:'Truth Reframes',blessings:'Blessings & Prayer',patterns:'Patterns & Tolerating',tcc:'TCC Overview',msa:'MSA Overview',media:'Inspiration Media',reminders:'Reminders',affirmations:'Affirmations'};
+function nav(tab){
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.toggle('active',i.dataset.tab===tab));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  document.getElementById('ph-title').textContent=TAB_TITLES[tab]||tab;
+  closeSidebar();
+  if(tab==='money') startMoneyCanvas();
+}
+function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('mob-backdrop').classList.add('open');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('mob-backdrop').classList.remove('open');}
+
+// ═══ TICKER ═══════════════════════════════════════════════════════
+function renderTicker(){
+  const el=document.getElementById('ticker-inner');
+  if(!affirmations.length) return;
+  // Duplicate for seamless loop
+  const items=[...affirmations,...affirmations].map(a=>
+    `<span class="ticker-item">${a.text}</span><span class="ticker-star">✦</span>`
+  ).join('');
+  el.innerHTML=items;
+  // Adjust animation duration based on count
+  el.style.animationDuration=(affirmations.length*8)+'s';
+}
+
+// ═══ FEATURED ═════════════════════════════════════════════════════
+function renderFeatured(){
+  const el=document.getElementById('featured-text');
+  if(el&&featured.text) el.textContent=featured.text;
+}
+function editFeatured(){
+  document.getElementById('feat-text').value=featured.text||'';
+  openModal('m-featured');
+}
+async function saveFeatured(){
+  const text=document.getElementById('feat-text').value.trim();
+  if(!text) return;
+  featured=await api('/api/featured',{method:'PUT',body:{text}});
+  renderFeatured();
+  closeModal('m-featured');
+  toast('✨ Featured affirmation updated!');
+}
+
+// ═══ COMMAND CENTER RENDER ════════════════════════════════════════
+function renderExtTaskList(elId, tasks, cat, sourceUrl){
+  const el=document.getElementById(elId); if(!el) return;
+  if(!tasks){el.innerHTML=`<div class="empty">Could not reach organizer</div>`;return;}
+  const filtered=tasks.filter(t=>t.cat===cat&&!t.done);
+  if(!filtered.length){el.innerHTML=`<div class="empty">All clear ✓</div>`;return;}
+  el.innerHTML=filtered.slice(0,5).map(t=>`
+    <div class="t-row">
+      <div class="t-text">${t.text||t.name||''}</div>
+      <a href="${sourceUrl}" target="_blank" class="t-link">Open →</a>
+    </div>`).join('');
+  if(filtered.length>5) el.innerHTML+=`<div style="font-size:11px;color:var(--muted);padding:4px 0;">+${filtered.length-5} more</div>`;
+}
+
+function renderExtCalendar(elId, calendar, sourceUrl){
+  const el=document.getElementById(elId); if(!el) return;
+  if(!calendar){el.innerHTML=`<div class="empty">Could not reach organizer</div>`;return;}
+  const today=new Date().toISOString().slice(0,10);
+  const todayEvts=calendar.filter(e=>e.date===today);
+  if(!todayEvts.length){el.innerHTML=`<div class="empty">No events today</div>`;return;}
+  el.innerHTML=todayEvts.map(e=>`
+    <div class="t-row">
+      <div class="t-text"><strong>${e.startTime||'All day'}</strong> — ${e.title}</div>
+      <a href="${sourceUrl}" target="_blank" class="t-link">Open →</a>
+    </div>`).join('');
+}
+
+function renderExtProjects(elId, projects, sourceUrl){
+  const el=document.getElementById(elId); if(!el) return;
+  if(!projects){el.innerHTML=`<div class="empty">Could not reach organizer</div>`;return;}
+  const active=projects.filter(p=>p.status==='active'||(!p.status));
+  if(!active.length){el.innerHTML=`<div class="empty">No active projects</div>`;return;}
+  el.innerHTML=active.slice(0,4).map(p=>{
+    const done=(p.tasks||[]).filter(t=>t.done).length, total=(p.tasks||[]).length;
+    return`<div class="t-row">
+      <div class="t-text"><strong>${p.name}</strong> <span style="font-size:11px;color:var(--muted);">${done}/${total} tasks</span></div>
+      <a href="${sourceUrl}" target="_blank" class="t-link">Open →</a>
+    </div>`;
+  }).join('');
+}
+
+function renderExtMessages(elId, messages, sourceUrl){
+  const el=document.getElementById(elId); if(!el) return;
+  if(!messages){el.innerHTML=`<div class="empty">Could not reach MSA</div>`;return;}
+  const unread=(messages||[]).filter(m=>!m.readBy||!m.readBy.includes('mary'));
+  if(!unread.length){el.innerHTML=`<div class="empty">No unread messages ✓</div>`;return;}
+  el.innerHTML=unread.slice(0,5).map(m=>`
+    <div class="t-row">
+      <div class="t-text"><strong>${m.from||''}:</strong> ${(m.body||'').slice(0,80)}${(m.body||'').length>80?'…':''}</div>
+      <a href="${sourceUrl}" target="_blank" class="t-link">Open →</a>
+    </div>`).join('');
+}
+
+function renderExtComingUp(elId, calendar, sourceUrl){
+  const el=document.getElementById(elId); if(!el) return;
+  if(!calendar){el.innerHTML=`<div class="empty">Could not reach organizer</div>`;return;}
+  const today=new Date().toISOString().slice(0,10);
+  const soon=calendar.filter(e=>e.date>today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,6);
+  if(!soon.length){el.innerHTML=`<div class="empty">Nothing upcoming</div>`;return;}
+  el.innerHTML=soon.map(e=>`
+    <div class="t-row">
+      <div class="t-text"><strong>${fmt(e.date)}</strong> — ${e.title}</div>
+      <a href="${sourceUrl}" target="_blank" class="t-link">Open →</a>
+    </div>`).join('');
+}
+
+function renderCommand(){
+  // TCC
+  renderExtTaskList('cc-tcc-today', tccData?.tasks, 'today', TCC_URL);
+  renderExtTaskList('cc-tcc-week', tccData?.tasks, 'week', TCC_URL);
+  renderExtTaskList('cc-tcc-reach', tccData?.tasks, 'reach', TCC_URL);
+  renderExtTaskList('cc-tcc-wait', tccData?.tasks, 'waiting', TCC_URL);
+  renderExtCalendar('cc-tcc-cal', tccData?.calendar, TCC_URL);
+  renderExtProjects('cc-tcc-proj', tccData?.projects, TCC_URL);
+  // MSA
+  renderExtTaskList('cc-msa-today', msaData?.tasks, 'today', MSA_URL);
+  renderExtTaskList('cc-msa-week', msaData?.tasks, 'week', MSA_URL);
+  renderExtTaskList('cc-msa-reach', msaData?.tasks, 'reach', MSA_URL);
+  renderExtTaskList('cc-msa-wait', msaData?.tasks, 'waiting', MSA_URL);
+  renderExtCalendar('cc-msa-cal', msaData?.calendar, MSA_URL);
+  renderExtProjects('cc-msa-proj', msaData?.projects, MSA_URL);
+  renderExtMessages('cc-msa-msgs', msaData?.messages, MSA_URL);
+  renderExtComingUp('cc-msa-coming', msaData?.calendar, MSA_URL);
+  // Prosperity step
+  const active=actionSteps.filter(s=>!s.done).slice(0,1)[0];
+  const el=document.getElementById('cc-action-step');
+  if(el&&active){
+    el.innerHTML=`<div class="action-step">
+      <div style="font-size:11px;font-weight:800;color:var(--sky2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">🚀 Prosperity Step of the Moment</div>
+      <div class="action-step-text">${active.text}</div>
+      ${active.why?`<div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Why: ${active.why}</div>`:''}
+      <button class="action-complete-btn" onclick="completeActionStep('${active.id}')">✓ Complete This Step 🎉</button>
+    </div>`;
+  } else if(el){
+    el.innerHTML=`<div class="action-step" style="text-align:center;">
+      <div style="font-size:24px;margin-bottom:8px;">🌟</div>
+      <div style="font-weight:700;color:var(--sky2);">All steps complete! Add your next prosperity action →</div>
+      <button class="action-complete-btn" style="margin-top:10px;" onclick="nav('action')">Add Step ✨</button>
+    </div>`;
+  }
+}
+
+// ═══ TCC / MSA FULL PAGES ════════════════════════════════════════
+function renderTCCFull(){
+  renderExtTaskList('tcc-today-full', tccData?.tasks, 'today', TCC_URL);
+  renderExtTaskList('tcc-week-full', tccData?.tasks, 'week', TCC_URL);
+  renderExtTaskList('tcc-reach-full', tccData?.tasks, 'reach', TCC_URL);
+  renderExtTaskList('tcc-wait-full', tccData?.tasks, 'waiting', TCC_URL);
+  renderExtProjects('tcc-proj-full', tccData?.projects, TCC_URL);
+  // Coming due: tasks with due dates in next 14 days
+  const el=document.getElementById('tcc-coming-full'); if(!el) return;
+  if(!tccData?.tasks){el.innerHTML='<div class="empty">Could not reach TCC</div>';return;}
+  const soon=(tccData.tasks||[]).filter(t=>{if(!t.dueDate||t.done)return false;const d=new Date(t.dueDate);const now=new Date();return d>=now&&d<=new Date(now.getTime()+14*86400000);}).sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
+  el.innerHTML=soon.length?soon.map(t=>`<div class="t-row"><div class="t-text">${t.text} <span style="font-size:11px;color:var(--sky2);">Due ${fmt(t.dueDate)}</span></div><a href="${TCC_URL}" target="_blank" class="t-link">Open →</a></div>`).join(''):`<div class="empty">Nothing coming due</div>`;
+}
+function renderMSAFull(){
+  renderExtTaskList('msa-today-full', msaData?.tasks, 'today', MSA_URL);
+  renderExtTaskList('msa-week-full', msaData?.tasks, 'week', MSA_URL);
+  renderExtTaskList('msa-reach-full', msaData?.tasks, 'reach', MSA_URL);
+  renderExtTaskList('msa-wait-full', msaData?.tasks, 'waiting', MSA_URL);
+  renderExtProjects('msa-proj-full', msaData?.projects, MSA_URL);
+  renderExtMessages('msa-msgs-full', msaData?.messages, MSA_URL);
+}
+
+// ═══ ACTION STEPS ════════════════════════════════════════════════
+function renderActionSteps(){
+  const active=actionSteps.filter(s=>!s.done).slice(0,3);
+  const done=actionSteps.filter(s=>s.done);
+  const el=document.getElementById('action-steps-list');
+  if(!active.length){el.innerHTML=`<div class="empty" style="text-align:center;padding:32px;font-size:16px;">🌟 You've completed all your steps!<br>Add your next 3 prosperity actions.</div>`;return;}
+  el.innerHTML=active.map((s,i)=>`
+    <div class="action-step">
+      <div style="font-size:10px;font-weight:800;color:var(--sky2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;">Step ${i+1} of ${Math.min(3,active.length)}</div>
+      <div class="action-step-text">${s.text}</div>
+      ${s.why?`<div style="font-size:12px;color:var(--text2);margin-bottom:10px;font-style:italic;">Why: ${s.why}</div>`:''}
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="action-complete-btn" onclick="completeActionStep('${s.id}')">✓ Complete This Step 🎉</button>
+        <button onclick="deleteItem('action-steps','${s.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;">×</button>
+      </div>
+    </div>`).join('');
+  if(done.length){
+    document.getElementById('action-completed').innerHTML=`
+      <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">✅ Completed Steps (${done.length})</div>
+      ${done.slice(-5).reverse().map(s=>`<div style="padding:10px 14px;background:var(--green-bg);border-radius:10px;margin-bottom:6px;font-size:13px;color:var(--green2);text-decoration:line-through;">${s.text}</div>`).join('')}`;
+  }
+}
+async function saveActionStep(){
+  const text=document.getElementById('as-text').value.trim(); if(!text) return;
+  const s=await api('/api/action-steps',{method:'POST',body:{text,why:document.getElementById('as-why').value,done:false}});
+  if(!s) return;
+  actionSteps.push(s);
+  closeModal('m-action');
+  document.getElementById('as-text').value=''; document.getElementById('as-why').value='';
+  renderActionSteps(); renderCommand();
+  toast('🚀 Prosperity step added!');
+}
+async function completeActionStep(id){
+  const s=actionSteps.find(s=>s.id===id); if(!s) return;
+  await api('/api/action-steps/'+id,{method:'PUT',body:{done:true}});
+  s.done=true;
+  launchMoneyBig();
+  renderActionSteps(); renderCommand();
+  toast('🎉 AMAZING! You completed a prosperity step!');
+}
+
+// ═══ VISION & GOALS ══════════════════════════════════════════════
+let visionSaveTimer=null;
+function autoSaveVision(){
+  clearTimeout(visionSaveTimer);
+  visionSaveTimer=setTimeout(()=>{
+    const ideas=document.getElementById('vision-ideas')?.value||'';
+    const notes=document.getElementById('vision-notes')?.value||'';
+    api('/api/vision',{method:'PUT',body:{ideas,notes}});
+  },1200);
+}
+function renderVision(){
+  const vi=document.getElementById('vision-ideas');
+  const vn=document.getElementById('vision-notes');
+  if(vi) vi.value=vision.ideas||'';
+  if(vn) vn.value=vision.notes||'';
+}
+function renderGoals(){
+  const el=document.getElementById('goals-list'); if(!el) return;
+  if(!goals.length){el.innerHTML='<div class="empty">Add your first goal ✨</div>';return;}
+  el.innerHTML=goals.map(g=>`
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="flex:1;"><div style="font-weight:700;font-size:14px;color:var(--text);">${g.text}</div>${g.why?`<div style="font-size:12px;color:var(--text2);font-style:italic;">Why: ${g.why}</div>`:''}${g.date?`<div style="font-size:11px;color:var(--sky2);">Target: ${fmt(g.date)}</div>`:''}</div>
+      <button onclick="deleteItem('goals','${g.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;">×</button>
+    </div>`).join('');
+}
+async function saveGoal(){
+  const text=document.getElementById('goal-text').value.trim(); if(!text) return;
+  const g=await api('/api/goals',{method:'POST',body:{text,date:document.getElementById('goal-date').value,why:document.getElementById('goal-why').value}});
+  if(!g) return;
+  goals.push(g); closeModal('m-goal');
+  document.getElementById('goal-text').value=''; document.getElementById('goal-date').value=''; document.getElementById('goal-why').value='';
+  renderGoals(); toast('🏆 Goal added!');
+}
+
+// ═══ GRATITUDE ════════════════════════════════════════════════════
+function renderGratitude(){
+  const el=document.getElementById('gratitude-list'); if(!el) return;
+  if(!gratitude.length){el.innerHTML='<div class="empty">Start your gratitude list — every entry shifts your vibration ✨</div>';return;}
+  el.innerHTML=[...gratitude].reverse().map(g=>`
+    <div class="gratitude-item">
+      <div style="flex:1;">🙏 ${g.text}</div>
+      <button onclick="deleteItem('gratitude','${g.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;flex-shrink:0;">×</button>
+    </div>`).join('');
+}
+async function saveGratitude(){
+  const text=document.getElementById('grat-text').value.trim(); if(!text) return;
+  const g=await api('/api/gratitude',{method:'POST',body:{text}});
+  if(!g) return;
+  gratitude.push(g); closeModal('m-gratitude');
+  document.getElementById('grat-text').value='';
+  renderGratitude(); launchMoneyCelebration(); toast('🙏 Gratitude added — your vibration just shifted!');
+}
+function promptReadAloud(type){
+  toast('📖 Take a deep breath and read each entry out loud with feeling. Let them land in your heart. 💛');
+}
+
+// ═══ LOVE LETTER ═════════════════════════════════════════════════
+function renderLoveLetter(){
+  const el=document.getElementById('love-letter-editor');
+  if(el) el.innerHTML=loveLetter.content||'';
+}
+async function saveLoveLetter(){
+  const content=document.getElementById('love-letter-editor').innerHTML;
+  loveLetter=await api('/api/love-letter',{method:'PUT',body:{content}});
+  toast('💌 Love letter saved — you are worthy of every word ♥');
+}
+
+// ═══ TRUTH REFRAMES ═══════════════════════════════════════════════
+function renderTruthReframes(){
+  const el=document.getElementById('truth-reframes-list'); if(!el) return;
+  if(!truthReframes.length){el.innerHTML='<div class="empty">Add your first reframe — transform every lie into truth ✨</div>';return;}
+  el.innerHTML=truthReframes.map(r=>`
+    <div style="margin-bottom:16px;">
+      <div class="reframe-grid">
+        <div class="reframe-card reframe-challenge">
+          <div class="reframe-label">The Lie / Challenge</div>
+          <div class="reframe-text">${r.lie}</div>
+        </div>
+        <div class="reframe-card reframe-truth">
+          <div class="reframe-label">The Truth ✨</div>
+          <div class="reframe-text">${r.truth}</div>
+        </div>
+      </div>
+      <button onclick="deleteItem('truth-reframes','${r.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;margin-top:4px;">Remove ×</button>
+    </div>`).join('');
+}
+async function saveTruthReframe(){
+  const lie=document.getElementById('truth-lie').value.trim();
+  const truth=document.getElementById('truth-truth').value.trim();
+  if(!lie||!truth) return;
+  const r=await api('/api/truth-reframes',{method:'POST',body:{lie,truth}});
+  if(!r) return;
+  truthReframes.push(r); closeModal('m-truth');
+  document.getElementById('truth-lie').value=''; document.getElementById('truth-truth').value='';
+  renderTruthReframes(); toast('💫 Truth reframe saved!');
+}
+
+// ═══ BLESSINGS ════════════════════════════════════════════════════
+function renderBlessings(){
+  const el=document.getElementById('blessings-list'); if(!el) return;
+  if(!blessings.length){el.innerHTML='<div class="empty">Pray for someone today — it shifts the energy for both of you 🕊️</div>';return;}
+  el.innerHTML=blessings.map(b=>`
+    <div class="blessing-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div class="blessing-name">🙏 ${b.name}</div>
+          ${b.context?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${b.context}</div>`:''}
+          <div class="blessing-prayer">${b.prayer}</div>
+        </div>
+        <button onclick="deleteItem('blessings','${b.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;flex-shrink:0;">×</button>
+      </div>
+    </div>`).join('');
+}
+async function saveBlessing(){
+  const name=document.getElementById('bl-name').value.trim(); if(!name) return;
+  const b=await api('/api/blessings',{method:'POST',body:{name,context:document.getElementById('bl-context').value,prayer:document.getElementById('bl-prayer').value}});
+  if(!b) return;
+  blessings.push(b); closeModal('m-blessing');
+  ['bl-name','bl-context','bl-prayer'].forEach(id=>document.getElementById(id).value='');
+  renderBlessings(); toast('✝️ Prayer added — love and release 🕊️');
+}
+
+// ═══ PATTERNS ════════════════════════════════════════════════════
+function renderPatterns(){
+  const el=document.getElementById('patterns-list'); if(!el) return;
+  if(!patterns.length){el.innerHTML='<div class="empty">Awareness is power — name what you\'re tolerating and shift it 🔄</div>';return;}
+  el.innerHTML=patterns.map(p=>`
+    <div class="pattern-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div class="pattern-title">🔄 ${p.text}</div>
+        <button onclick="deleteItem('patterns','${p.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;">×</button>
+      </div>
+      ${[p.step1,p.step2,p.step3].filter(Boolean).map(s=>`<div class="pattern-step">${s}</div>`).join('')}
+    </div>`).join('');
+}
+async function savePattern(){
+  const text=document.getElementById('pat-text').value.trim(); if(!text) return;
+  const p=await api('/api/patterns',{method:'POST',body:{text,step1:document.getElementById('pat-s1').value,step2:document.getElementById('pat-s2').value,step3:document.getElementById('pat-s3').value}});
+  if(!p) return;
+  patterns.push(p); closeModal('m-pattern');
+  ['pat-text','pat-s1','pat-s2','pat-s3'].forEach(id=>document.getElementById(id).value='');
+  renderPatterns(); toast('🔄 Pattern named — awareness is the first step to freedom!');
+}
+
+// ═══ MEDIA ════════════════════════════════════════════════════════
+function renderMedia(){
+  ['youtube','books','songs','other'].forEach(type=>{
+    const el=document.getElementById('media-'+type); if(!el) return;
+    const items=(media[type]||[]);
+    const icons={youtube:'▶️',books:'📚',songs:'🎵',other:'🌟'};
+    if(!items.length){el.innerHTML='<div class="empty">Add some inspiration ✨</div>';return;}
+    el.innerHTML=items.map(m=>`
+      <div class="media-item" onclick="${m.url?`window.open('${m.url}','_blank')`:''}">
+        <div class="media-icon">${icons[type]}</div>
+        <div><div class="media-title">${m.title}</div>${m.note?`<div class="media-note">${m.note}</div>`:''}</div>
+        <button onclick="event.stopPropagation();deleteMediaItem('${type}','${m.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;margin-left:auto;">×</button>
+      </div>`).join('');
+  });
+}
+async function saveMedia(){
+  const type=document.getElementById('med-type').value;
+  const title=document.getElementById('med-title').value.trim(); if(!title) return;
+  const item={id:Date.now().toString(),title,url:document.getElementById('med-url').value,note:document.getElementById('med-note').value};
+  if(!media[type]) media[type]=[];
+  media[type].push(item);
+  await api('/api/media',{method:'PUT',body:media});
+  closeModal('m-media');
+  ['med-title','med-url','med-note'].forEach(id=>document.getElementById(id).value='');
+  renderMedia(); toast('✨ Added to your inspiration library!');
+}
+async function deleteMediaItem(type,id){
+  media[type]=(media[type]||[]).filter(m=>m.id!==id);
+  await api('/api/media',{method:'PUT',body:media});
+  renderMedia();
+}
+
+// ═══ REMINDERS ═══════════════════════════════════════════════════
+function renderReminders(){
+  const el=document.getElementById('reminders-list'); if(!el) return;
+  const upcoming=reminders.filter(r=>!r.dismissed).sort((a,b)=>new Date(a.datetime)-new Date(b.datetime));
+  if(!upcoming.length){el.innerHTML='<div class="empty">No reminders set — add a positive intention for yourself 🔔</div>';return;}
+  el.innerHTML=upcoming.map(r=>`
+    <div class="reminder-item">
+      <div class="reminder-time">${fmtDt(r.datetime)}</div>
+      <div class="reminder-text">${r.text}</div>
+      <span class="reminder-badge">${r.type||'once'}</span>
+      <button onclick="deleteItem('reminders','${r.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;margin-left:8px;">×</button>
+    </div>`).join('');
+}
+async function saveReminder(){
+  const text=document.getElementById('rem-text').value.trim(); if(!text) return;
+  const r=await api('/api/reminders',{method:'POST',body:{text,datetime:document.getElementById('rem-dt').value,type:document.getElementById('rem-type').value,dismissed:false}});
+  if(!r) return;
+  reminders.push(r); closeModal('m-reminder');
+  ['rem-text','rem-dt'].forEach(id=>document.getElementById(id).value='');
+  renderReminders(); toast('🔔 Reminder set!');
+}
+function startRemindersCheck(){
+  setInterval(()=>{
+    const now=new Date();
+    reminders.filter(r=>!r.dismissed&&r.datetime).forEach(r=>{
+      const dt=new Date(r.datetime);
+      if(Math.abs(now-dt)<60000){
+        toast(`🔔 ${r.text}`, 8000);
+        if(r.type==='once') api('/api/reminders/'+r.id,{method:'PUT',body:{dismissed:true}});
+      }
+    });
+  }, 30000);
+}
+
+// ═══ AFFIRMATIONS ═════════════════════════════════════════════════
+function renderAffirmations(){
+  const el=document.getElementById('affirmations-list'); if(!el) return;
+  el.innerHTML=affirmations.map((a,i)=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:${i%2===0?'var(--sky-bg)':'var(--sun-bg)'};border-radius:12px;margin-bottom:8px;">
+      <span style="font-size:18px;">✨</span>
+      <div style="flex:1;font-size:14px;color:var(--text);line-height:1.5;">${a.text}</div>
+      <button onclick="deleteItem('affirmations','${a.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;">×</button>
+    </div>`).join('');
+}
+async function saveAffirmation(){
+  const text=document.getElementById('aff-text').value.trim(); if(!text) return;
+  const a=await api('/api/affirmations',{method:'POST',body:{text}});
+  if(!a) return;
+  affirmations.push(a); closeModal('m-affirmation');
+  document.getElementById('aff-text').value='';
+  renderAffirmations(); renderTicker(); toast('✨ Affirmation added to the ticker!');
+}
+
+// ═══ DELETE HELPER ════════════════════════════════════════════════
+const storeMap={'goals':()=>goals,'action-steps':()=>actionSteps,'truth-reframes':()=>truthReframes,'gratitude':()=>gratitude,'blessings':()=>blessings,'patterns':()=>patterns,'reminders':()=>reminders,'affirmations':()=>affirmations};
+const renderMap={'goals':renderGoals,'action-steps':renderActionSteps,'truth-reframes':renderTruthReframes,'gratitude':renderGratitude,'blessings':renderBlessings,'patterns':renderPatterns,'reminders':renderReminders,'affirmations':()=>{renderAffirmations();renderTicker();}};
+async function deleteItem(store,id){
+  await api('/api/'+store+'/'+id,{method:'DELETE'});
+  const arr=storeMap[store]();
+  const idx=arr.findIndex(i=>i.id===id);
+  if(idx!==-1) arr.splice(idx,1);
+  if(renderMap[store]) renderMap[store]();
+}
+
+// ═══ ENERGY CHECK ════════════════════════════════════════════════
+function openEnergyCheck(){openModal('m-energy');document.getElementById('energy-resp-box').style.display='none';}
+async function energyResponse(level){
+  // Log it
+  await api('/api/energy-log',{method:'POST',body:{level,timestamp:new Date().toISOString()}});
+  const box=document.getElementById('energy-resp-box');
+  box.style.display='block';
+  box.className='energy-response '+(level==='high'?'high':'low');
+  if(level==='high'){
+    box.innerHTML=`<div style="font-size:20px;margin-bottom:8px;">🌟✨💛</div>
+      <div style="font-weight:700;font-size:15px;color:var(--green2);margin-bottom:8px;">YES! Your energy is MAGNETIC right now!</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.7;">Thank You Lord for this beautiful, high-vibration moment. Money flows to high energy. Stay here, take action, and receive! 💰<br><br><em>"This is the day the Lord has made — I will rejoice and be glad in it."</em></div>`;
+    launchMoneyCelebration();
+  } else {
+    const isLow=level==='low';
+    box.innerHTML=`<div style="font-size:20px;margin-bottom:8px;">${isLow?'💙':'💛'}</div>
+      <div style="font-weight:700;font-size:15px;color:var(--sky2);margin-bottom:8px;">${isLow?"It's okay — every dip is temporary. Let's shift this! 💙":"You're building momentum! Let's lift that energy higher! 💛"}</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.9;">
+        <strong>Right now:</strong><br>
+        💧 Drink a glass of hydrogen water — hydrate your cells<br>
+        🏃 Jump on the rebounder for 5 minutes while positive rambling out loud<br>
+        📖 <a href="#" onclick="nav('love');closeModal('m-energy')" style="color:var(--sky2);font-weight:700;">Read your Love Letter</a> to yourself<br>
+        🙏 <a href="#" onclick="nav('gratitude');closeModal('m-energy')" style="color:var(--sky2);font-weight:700;">Read your Gratitude list</a> out loud<br><br>
+        <em style="color:var(--muted);">✝️ "I can do all things through Christ who strengthens me." — Phil 4:13<br>This moment is not your permanent address. You are rising. 🌅</em>
+      </div>`;
+  }
+}
+
+// ═══ MONEY CANVAS ════════════════════════════════════════════════
+let moneyAnimFrame = null;
+let moneyParticles = [];
+
+function startMoneyCanvas(){
+  const canvas=document.getElementById('money-canvas'); if(!canvas) return;
+  if(moneyAnimFrame) cancelAnimationFrame(moneyAnimFrame);
+  canvas.width=canvas.offsetWidth||600;
+  canvas.height=400;
+  moneyParticles=[];
+  for(let i=0;i<40;i++) moneyParticles.push(newMoneyParticle(canvas,true));
+  // Draw basket
+  drawMoneyLoop(canvas);
+}
+
+function newMoneyParticle(canvas, random=false){
+  const types=['💵','💴','💶','🪙','💰','✨','💛'];
+  return {
+    x: Math.random()*canvas.width,
+    y: random ? Math.random()*canvas.height*0.8 : -30,
+    vy: 1.5+Math.random()*2.5,
+    vx: (Math.random()-.5)*1.5,
+    rot: Math.random()*360,
+    rotV: (Math.random()-.5)*3,
+    size: 18+Math.random()*14,
+    type: types[Math.floor(Math.random()*types.length)],
+    opacity: 0.7+Math.random()*0.3,
+  };
+}
+
+function drawMoneyLoop(canvas){
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+
+  function loop(){
+    ctx.clearRect(0,0,W,H);
+
+    // Background glow
+    const grad=ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0,'#fffbeb');
+    grad.addColorStop(1,'#fef9c3');
+    ctx.fillStyle=grad;
+    ctx.fillRect(0,0,W,H);
+
+    // Basket / bank at bottom center
+    const bx=W/2, by=H-60, bw=120, bh=70;
+    ctx.save();
+    ctx.fillStyle='#92400e';
+    ctx.beginPath();
+    ctx.ellipse(bx,by+bh/2,bw/2,10,0,0,Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle='#b45309';
+    ctx.fillRect(bx-bw/2,by-bh/2,bw,bh);
+    ctx.fillStyle='#fbbf24';
+    ctx.fillRect(bx-bw/2+8,by-bh/2,bw-16,12);
+    ctx.fillStyle='rgba(255,255,255,.15)';
+    ctx.fillRect(bx-bw/2+4,by-bh/2+16,8,bh-16);
+    ctx.restore();
+
+    // Label
+    ctx.font='bold 13px Nunito, sans-serif';
+    ctx.fillStyle='#92400e';
+    ctx.textAlign='center';
+    ctx.fillText('My Abundance', bx, by+bh/2+22);
+
+    // Particles
+    moneyParticles.forEach((p,i)=>{
+      p.y += p.vy;
+      p.x += p.vx;
+      p.rot += p.rotV;
+
+      // Land in basket
+      if(p.y>H-60&&p.x>W/2-60&&p.x<W/2+60){
+        moneyParticles[i]=newMoneyParticle(canvas);
+        return;
+      }
+      if(p.y>H+30) moneyParticles[i]=newMoneyParticle(canvas);
+
+      ctx.save();
+      ctx.globalAlpha=p.opacity;
+      ctx.translate(p.x,p.y);
+      ctx.rotate(p.rot*Math.PI/180);
+      ctx.font=p.size+'px serif';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.fillText(p.type,0,0);
+      ctx.restore();
+    });
+
+    moneyAnimFrame=requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+// ═══ MONEY CELEBRATIONS ══════════════════════════════════════════
+function launchMoneyCelebration(){
+  const canvas=document.createElement('canvas');
+  canvas.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;';
+  canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+  document.body.appendChild(canvas);
+  const ctx=canvas.getContext('2d');
+  const types=['💵','🪙','💰','💴','💶','✨','🌟','💛'];
+  const pieces=Array.from({length:60},()=>({
+    x:Math.random()*canvas.width, y:-20-Math.random()*60,
+    vx:(Math.random()-.5)*4, vy:3+Math.random()*4, vy0:0,
+    rot:Math.random()*360, rotV:(Math.random()-.5)*5,
+    size:20+Math.random()*16, type:types[Math.floor(Math.random()*types.length)],
+    opacity:1, wobble:Math.random()*Math.PI*2, wobbleV:.06+Math.random()*.04,
+  }));
+  let frame=0;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    let alive=false;
+    pieces.forEach(p=>{
+      p.x+=p.vx+Math.sin(p.wobble)*1.2; p.y+=p.vy; p.vy+=.1;
+      p.rot+=p.rotV; p.wobble+=p.wobbleV;
+      if(p.y>canvas.height*.65) p.opacity-=.025;
+      if(p.opacity<=0) return;
+      alive=true;
+      ctx.save(); ctx.globalAlpha=Math.max(0,p.opacity);
+      ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
+      ctx.font=p.size+'px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(p.type,0,0);
+      ctx.restore();
+    });
+    frame++;
+    if(alive&&frame<200) requestAnimationFrame(draw); else canvas.remove();
+  }
+  requestAnimationFrame(draw);
+}
+
+function launchMoneyBig(){
+  // Bigger, more dramatic celebration for prosperity step completion
+  const canvas=document.createElement('canvas');
+  canvas.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;';
+  canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+  document.body.appendChild(canvas);
+  const ctx=canvas.getContext('2d');
+
+  // Show message
+  const msg=document.createElement('div');
+  msg.style.cssText=`position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10000;
+    background:linear-gradient(135deg,#fbbf24,#f59e0b);color:white;border-radius:24px;
+    padding:28px 40px;text-align:center;font-family:'Dancing Script',cursive;
+    box-shadow:0 16px 64px rgba(251,191,36,.5);animation:pop .3s ease;pointer-events:none;`;
+  msg.innerHTML=`<div style="font-size:48px;margin-bottom:8px;">🎉💰🌟</div>
+    <div style="font-size:28px;font-weight:700;">PROSPERITY UNLOCKED!</div>
+    <div style="font-size:16px;opacity:.9;margin-top:6px;">Thank You Lord for this breakthrough! 🙏</div>`;
+  document.body.appendChild(msg);
+  setTimeout(()=>msg.remove(), 3500);
+
+  const types=['💵','💵','🪙','💰','💴','💶','✨','🌟','💛','🎉','✨'];
+  const pieces=Array.from({length:120},()=>({
+    x:Math.random()*canvas.width, y:-20-Math.random()*100,
+    vx:(Math.random()-.5)*6, vy:2+Math.random()*5,
+    rot:Math.random()*360, rotV:(Math.random()-.5)*6,
+    size:24+Math.random()*20, type:types[Math.floor(Math.random()*types.length)],
+    opacity:1, wobble:Math.random()*Math.PI*2, wobbleV:.05+Math.random()*.05,
+  }));
+  let frame=0;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    let alive=false;
+    pieces.forEach(p=>{
+      p.x+=p.vx+Math.sin(p.wobble)*1.5; p.y+=p.vy; p.vy+=.08;
+      p.rot+=p.rotV; p.wobble+=p.wobbleV;
+      if(p.y>canvas.height*.7) p.opacity-=.018;
+      if(p.opacity<=0) return;
+      alive=true;
+      ctx.save(); ctx.globalAlpha=Math.max(0,p.opacity);
+      ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
+      ctx.font=p.size+'px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(p.type,0,0);
+      ctx.restore();
+    });
+    frame++;
+    if(alive&&frame<280) requestAnimationFrame(draw); else canvas.remove();
+  }
+  requestAnimationFrame(draw);
+}
+
+// ═══ BACKUP ═══════════════════════════════════════════════════════
+async function downloadBackup(){
+  const r=await fetch('/api/backup');
+  const blob=await r.blob();
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`mvc-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(url);
+  toast('💾 Backup downloaded!');
+}
+</script>
+</body>
+</html>
