@@ -167,17 +167,33 @@ singleRoutes('media', 'media');
 const https = require('https');
 const http = require('http');
 
+const MVC_API_KEY = process.env.MVC_API_KEY || 'mvc-readonly-2024-xk9';
+
 function fetchExternal(url) {
   return new Promise((resolve) => {
     const lib = url.startsWith('https') ? https : http;
-    lib.get(url, { timeout: 8000 }, (res) => {
+    const urlObj = new URL(url);
+    const options = {
+      hostname: urlObj.hostname,
+      path: urlObj.pathname + urlObj.search,
+      method: 'GET',
+      timeout: 10000,
+      headers: {
+        'x-mvc-key': MVC_API_KEY,
+        'Accept': 'application/json'
+      }
+    };
+    const req = lib.request(options, (res) => {
       let body = '';
       res.on('data', d => body += d);
       res.on('end', () => {
         try { resolve({ ok: res.statusCode < 400, data: JSON.parse(body), status: res.statusCode }); }
-        catch { resolve({ ok: false, data: null, status: res.statusCode }); }
+        catch(e) { resolve({ ok: false, data: null, status: res.statusCode, error: e.message }); }
       });
-    }).on('error', () => resolve({ ok: false, data: null, status: 0 }));
+    });
+    req.on('error', (e) => resolve({ ok: false, data: null, status: 0, error: e.message }));
+    req.on('timeout', () => { req.destroy(); resolve({ ok: false, data: null, status: 0, error: 'timeout' }); });
+    req.end();
   });
 }
 
@@ -185,7 +201,9 @@ function fetchExternal(url) {
 app.post('/api/proxy', auth, async (req, res) => {
   const { url } = req.body;
   if (!url) return res.status(400).json({ error: 'No URL' });
+  console.log('Proxy fetch:', url);
   const result = await fetchExternal(url);
+  console.log('Proxy result:', url, result.status, result.ok);
   res.json(result);
 });
 
