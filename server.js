@@ -32,19 +32,18 @@ const files = {
   icalFeeds:      path.join(DATA_DIR, 'icalFeeds.json'),
 };
 
-// Trust Render's proxy FIRST so secure cookies work correctly over HTTPS
 app.set('trust proxy', 1);
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(session({
   secret: process.env.SESSION_SECRET || 'mvc-vision-2024-mary-secret-xk9',
-  resave: false,
+  resave: true,
   saveUninitialized: false,
   cookie: {
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    httpOnly: true,
+    secure: false,
+    sameSite: 'lax',
+    httpOnly: false,
   }
 }));
 app.use(express.static(PUBLIC_DIR));
@@ -115,7 +114,11 @@ app.post('/api/login', async (req, res) => {
   const u = users.find(u => u.username === username);
   if (!u || !bcrypt.compareSync(password, u.password)) return res.status(401).json({ error: 'Invalid credentials' });
   req.session.userId = u.id;
-  res.json({ id: u.id, name: u.name });
+  req.session.save(err => {
+    if (err) console.error('Session save error:', err);
+    else console.log('Session saved for user:', u.id, 'sessionID:', req.sessionID);
+    res.json({ id: u.id, name: u.name });
+  });
 });
 
 app.post('/api/logout', (req, res) => { req.session.destroy(); res.json({ ok: true }); });
